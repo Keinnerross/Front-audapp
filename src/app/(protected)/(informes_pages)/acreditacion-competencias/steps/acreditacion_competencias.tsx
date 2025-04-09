@@ -11,90 +11,133 @@ import Input from "@/components/form/input/InputField";
 import { CalenderIcon } from "@/icons";
 import DefaultInputs from "@/components/form/form-elements/DefaultInputs";
 
-export default function AcreditacionCompetenciasAcreditacionCompetencias() {
-    const [auditores, setAuditores] = useState([]);
+// 💡 Tipo para este paso del formulario
+export interface AcreditacionData {
+  auditor: string;
+  fecha_evaluacion: string;
+  evaluacion_teorica: string;
+  evaluacion_practica: string;
+  evaluador: string;
+  rut_evaluador: string;
+  observaciones: string;
+  evidencia: File | null;
+}
 
+// Props esperados desde el componente padre
+interface Props {
+  data: AcreditacionData;
+  onChange: (value: Partial<AcreditacionData>) => void;
+}
 
-    useEffect(() => {
-        const fetchAuditores = async () => {
-            try {
-                const resAuditores = await getAuditores();
-                setAuditores(resAuditores);
+export default function AcreditacionCompetenciasAcreditacionCompetencias({ data, onChange }: Props) {
+  const [auditores, setAuditores] = useState<any[]>([]);
 
-            } catch (error) {
-                console.error("Error cargando auditores:", error);
+  useEffect(() => {
+    const fetchAuditores = async () => {
+      try {
+        const resAuditores = await getAuditores();
+        setAuditores(resAuditores);
+      } catch (error) {
+        console.error("Error cargando auditores:", error);
+      }
+    };
+
+    fetchAuditores();
+  }, []);
+
+  const auditorOptions = auditores.map((auditor) => ({
+    value: String(auditor.id),
+    label: auditor.Nombre,
+  }));
+
+  return (
+    <div className="pb-10">
+      <Section title="Acreditación de competencias">
+        <div className="flex flex-col gap-6">
+
+          <div>
+            <Label>Seleccionar Auditor</Label>
+            <Select
+              options={auditorOptions}
+              placeholder="Selecciona un auditor"
+              value={data.auditor}
+              onChange={(value: string) => onChange({ auditor: value })}
+            />
+          </div>
+
+          <div className="relative">
+            <Label htmlFor="fecha_evaluacion">Fecha Evaluación</Label>
+            <div className="relative">
+              <Input
+                type="date"
+                id="fecha_evaluacion"
+                name="fecha_evaluacion"
+                value={data.fecha_evaluacion}
+                onChange={(e) => onChange({ fecha_evaluacion: e.target.value })}
+              />
+              <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
+                <CalenderIcon />
+              </span>
+            </div>
+          </div>
+
+          <DefaultInputs
+            name="evaluacion_teorica"
+            label="Evaluación teórica"
+            defaultValue={data.evaluacion_teorica}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onChange({ evaluacion_teorica: e.target.value })
             }
-        };
+          />
 
-        fetchAuditores();
-    }, []);
+          <DefaultInputs
+            name="evaluacion_practica"
+            label="Evaluación práctica"
+            defaultValue={data.evaluacion_practica}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onChange({ evaluacion_practica: e.target.value })
+            }
+          />
 
+          <DefaultInputs
+            name="evaluador"
+            label="Evaluador"
+            defaultValue={data.evaluador}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onChange({ evaluador: e.target.value })
+            }
+          />
 
-    const auditorOptions = auditores.map((auditor) => ({
-        value: String(auditor.id),
-        label: auditor.Nombre,
-    }));
+          <DefaultInputs
+            name="rut_evaluador"
+            label="Rut Evaluador"
+            defaultValue={data.rut_evaluador}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+              onChange({ rut_evaluador: e.target.value })
+            }
+          />
 
+          <TextAreaInput
+            name="observaciones"
+            label="Observaciones"
+            defaultValue={data.observaciones}
+            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+              onChange({ observaciones: e.target.value })
+            }
+          />
 
-
-    return (
-        <div className="pb-10">
-
-            <Section title="Acreditación de competencias">
-                <div className="flex flex-col gap-6">
-
-
-                    <div className="">
-                        <Label>Seleccionar Auditor</Label>
-                        <Select
-                            options={auditorOptions}
-                            placeholder="Selecciona un auditor"
-                            onChange={(value) => {
-                                const auditor = auditores.find((a) => String(a.id) === value);
-                                console.log("Auditor seleccionado:", auditor);
-                            }}
-                        />
-
-                    </div>
-
-                    <div className="relative">
-                        <div>
-                            <Label htmlFor="fecha_evaluacion">Fecha Evaluación</Label>
-                            <div className="relative">
-                                <Input
-                                    type="date"
-                                    id="fecha_evaluacion"
-                                    name="fecha_evaluacion"
-                                    onChange={(e) => console.log(e.target.value)}
-                                />
-                                <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
-                                    <CalenderIcon />
-                                </span>
-                            </div>
-                        </div>
-
-                    </div>
-                    <DefaultInputs name="nombre_informe" label="Evaluación teórica" defaultValue={""} />
-                    <DefaultInputs name="nombre_informe" label="Evaluación práctica" defaultValue={""} />
-                    <DefaultInputs name="nombre_informe" label="Evaluador" defaultValue={""} />
-                    <DefaultInputs name="nombre_informe" label="Rut Evaluador" defaultValue={""} />
-                    <TextAreaInput
-                        name={`observaciones_0`}
-                        label="Observaciones"
-                        defaultValue=""
-                    />
-                    <DropzoneComponent
-                        name={`evidencia_0}`}
-                        label="Evidencia"
-                        defaultValue=""
-                    />
-                </div>
-
-            </Section>
-
-
-
-
-        </div >
-    );
+          <DropzoneComponent
+            name="evidencia"
+            label="Evidencia"
+            defaultValue=""
+            onDrop={(files: File[]) => {
+              if (files.length > 0) {
+                onChange({ evidencia: files[0] });
+              }
+            }}
+          />
+        </div>
+      </Section>
+    </div>
+  );
 }
