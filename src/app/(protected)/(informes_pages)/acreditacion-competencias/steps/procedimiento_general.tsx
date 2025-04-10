@@ -8,13 +8,12 @@ import TextAreaInput from "@/components/form/form-elements/TextAreaInput";
 import DropzoneComponent from "@/components/form/form-elements/DropZone";
 import { getRequerimientosProcedimientoGeneral } from "@/lib/informe _acreditación";
 
-// Tipos
 export interface Requerimiento {
-  id: number;
+  nombre_requerimiento: string;
   calificacion: string;
   comentario: string;
   recomendacion: string;
-  evidencia: File | null;
+  archivos: File | null;
 }
 
 export interface ProcedimientoGeneralData {
@@ -28,13 +27,19 @@ interface Props {
   onChange: (value: Partial<ProcedimientoGeneralData>) => void;
 }
 
-export default function ProcedimientoGeneralAcreditacionCompetencias({ data, onChange }: Props) {
-  const calificaciones = ["Cumple", "No Cumple", "Oportunidad de Mejora", "No Aplica"];
-  const calificacionesResumen = ["Conforme", "No Conforme", "Con Observaciones", "No Aplica"];
+export default function ProcedimientoGeneralAcreditacionCompetencias({
+  data,
+  onChange,
+}: Props) {
+  const calificaciones = ["cumple", "no cumple", "oportunidad de mejora", "no aplica"];
+  const calificacionesResumen = ["conforme", "no conforme", "con observaciones", "no aplica"];
   const [requerimientosAPI, setRequerimientosAPI] = useState<any[]>([]);
 
   const calificacionesOptions = calificaciones.map((c) => ({ value: c, label: c }));
-  const calificacionesResumenOptions = calificacionesResumen.map((c) => ({ value: c, label: c }));
+  const calificacionesResumenOptions = calificacionesResumen.map((c) => ({
+    value: c,
+    label: c,
+  }));
 
   useEffect(() => {
     const fetchData = async () => {
@@ -42,17 +47,7 @@ export default function ProcedimientoGeneralAcreditacionCompetencias({ data, onC
         const res = await getRequerimientosProcedimientoGeneral();
         setRequerimientosAPI(res);
 
-        // Si no hay data aún, inicializamos los requerimientos
-        if (data.requerimientos.length === 0) {
-          const initial = res.map((r: any) => ({
-            id: r.id,
-            calificacion: "",
-            comentario: "",
-            recomendacion: "",
-            evidencia: null,
-          }));
-          onChange({ requerimientos: initial });
-        }
+
       } catch (error) {
         console.error("Error cargando requerimientos:", error);
       }
@@ -63,14 +58,19 @@ export default function ProcedimientoGeneralAcreditacionCompetencias({ data, onC
 
   const updateRequerimiento = (index: number, newData: Partial<Requerimiento>) => {
     const updated = [...data.requerimientos];
-    updated[index] = { ...updated[index], ...newData };
+    const current = updated[index] || {};
+    updated[index] = {
+      ...current,
+      ...newData,
+      nombre_requerimiento:
+        requerimientosAPI[index]?.nombre_requerimiento || current.nombre_requerimiento || "",
+    };
     onChange({ requerimientos: updated });
   };
 
   return (
     <div className="pb-10">
       <div id="form-procedimiento" className="p-6 space-y-10">
-
         <Section title="Procedimiento General">
           <div className="flex flex-col gap-14">
             {requerimientosAPI.map((requerimiento, index) => (
@@ -93,7 +93,7 @@ export default function ProcedimientoGeneralAcreditacionCompetencias({ data, onC
                   name={`comentario_${index}`}
                   label="Comentario"
                   defaultValue={data.requerimientos[index]?.comentario || ""}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  onChange={(e) =>
                     updateRequerimiento(index, { comentario: e.target.value })
                   }
                 />
@@ -102,17 +102,17 @@ export default function ProcedimientoGeneralAcreditacionCompetencias({ data, onC
                   name={`recomendacion_${index}`}
                   label="Recomendación"
                   defaultValue={data.requerimientos[index]?.recomendacion || ""}
-                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                  onChange={(e) =>
                     updateRequerimiento(index, { recomendacion: e.target.value })
                   }
                 />
 
                 <DropzoneComponent
-                  name={`evidencia_${index}`}
+                  name={`archivos_${index}`}
                   label="Evidencia"
                   defaultValue=""
                   onDrop={(files: File[]) =>
-                    updateRequerimiento(index, { evidencia: files[0] })
+                    updateRequerimiento(index, { archivos: files[0] })
                   }
                 />
               </div>
@@ -135,7 +135,7 @@ export default function ProcedimientoGeneralAcreditacionCompetencias({ data, onC
             name="observaciones_procedimiento_general"
             label="Observaciones"
             defaultValue={data.observaciones_resumen}
-            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+            onChange={(e) =>
               onChange({ observaciones_resumen: e.target.value })
             }
           />

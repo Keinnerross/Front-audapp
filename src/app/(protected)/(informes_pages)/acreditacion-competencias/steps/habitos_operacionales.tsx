@@ -10,7 +10,7 @@ import { getRequerimientosHabitosOperacionales } from "@/lib/informe _acreditaci
 
 // Tipos
 export interface HabitoRequerimiento {
-  id: number;
+  nombre_requerimiento: string;
   calificacion: string;
   comentario: string;
   recomendacion: string;
@@ -29,8 +29,8 @@ interface Props {
 }
 
 export default function HabitosOperacionalesAcreditacionCompetencias({ data, onChange }: Props) {
-  const calificaciones = ["Cumple", "No Cumple", "Oportunidad de Mejora", "No Aplica"];
-  const calificacionesResumen = ["Conforme", "No Conforme", "Con Observaciones", "No Aplica"];
+  const calificaciones = ["cumple", "no cumple", "oportunidad de mejora", "no aplica"];
+  const calificacionesResumen = ["conforme", "no conforme", "con observaciones", "no aplica"];
   const [requerimientosAPI, setRequerimientosAPI] = useState<any[]>([]);
 
   const calificacionesOptions = calificaciones.map((c) => ({ value: c, label: c }));
@@ -44,7 +44,7 @@ export default function HabitosOperacionalesAcreditacionCompetencias({ data, onC
 
         if (data.requerimientos.length === 0) {
           const initial = res.map((r: any) => ({
-            id: r.id,
+            nombre_requerimiento: r.nombre_requerimiento,
             calificacion: "",
             comentario: "",
             recomendacion: "",
@@ -62,13 +62,18 @@ export default function HabitosOperacionalesAcreditacionCompetencias({ data, onC
 
   const updateRequerimiento = (index: number, newData: Partial<HabitoRequerimiento>) => {
     const updated = [...data.requerimientos];
-    updated[index] = { ...updated[index], ...newData };
+    const current = updated[index] || {};
+    updated[index] = {
+      ...current,
+      ...newData,
+      nombre_requerimiento: requerimientosAPI[index]?.nombre_requerimiento || current.nombre_requerimiento || "",
+    };
     onChange({ requerimientos: updated });
   };
 
   return (
     <div className="pb-10">
-      <div id="form-procedimiento" className="p-6 space-y-10">
+      <div id="form-habitos" className="p-6 space-y-10">
         <Section title="Hábitos Operacionales">
           <div className="flex flex-col gap-14">
             {requerimientosAPI.map((requerimiento, index) => (
@@ -81,9 +86,7 @@ export default function HabitosOperacionalesAcreditacionCompetencias({ data, onC
                   options={calificacionesOptions}
                   placeholder="Selecciona una calificación"
                   value={data.requerimientos[index]?.calificacion || ""}
-                  onChange={(value) =>
-                    updateRequerimiento(index, { calificacion: value })
-                  }
+                  onChange={(value) => updateRequerimiento(index, { calificacion: value })}
                 />
 
                 <TextAreaInput
@@ -123,13 +126,11 @@ export default function HabitosOperacionalesAcreditacionCompetencias({ data, onC
             options={calificacionesResumenOptions}
             placeholder="Selecciona una calificación"
             value={data.calificacion_resumen}
-            onChange={(value: string) =>
-              onChange({ calificacion_resumen: value })
-            }
+            onChange={(value: string) => onChange({ calificacion_resumen: value })}
           />
 
           <TextAreaInput
-            name="observaciones_procedimiento_general"
+            name="observaciones_habitos_operacionales"
             label="Observaciones"
             defaultValue={data.observaciones_resumen}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>

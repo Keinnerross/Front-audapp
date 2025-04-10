@@ -20,7 +20,7 @@ export interface AcreditacionData {
   evaluador: string;
   rut_evaluador: string;
   observaciones: string;
-  evidencia: File | null;
+  scan_documento: File | string | null;
 }
 
 // Props esperados desde el componente padre
@@ -46,7 +46,7 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
   }, []);
 
   const auditorOptions = auditores.map((auditor) => ({
-    value: String(auditor.id),
+    value: String(auditor.documentId),
     label: auditor.Nombre,
   }));
 
@@ -127,15 +127,17 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
           />
 
           <DropzoneComponent
-            name="evidencia"
-            label="Evidencia"
-            defaultValue=""
+            name="scan_documento"
+            label="Scan Documento"
             onDrop={(files: File[]) => {
               if (files.length > 0) {
-                onChange({ evidencia: files[0] });
+                console.log("✅ Archivo que se envía al padre:", files[0]);
+                onChange({ scan_documento: files[0] });
               }
             }}
           />
+
+
         </div>
       </Section>
     </div>

@@ -33,6 +33,7 @@ export default function BaseInformeAcreditacionCompetencias({ data, onChange }: 
     const fetchData = async () => {
       try {
         const resAuditores = await getAuditores();
+        console.log(resAuditores)
         setAuditores(resAuditores);
 
         const resEmpresas = await getEmpresas();
@@ -46,12 +47,12 @@ export default function BaseInformeAcreditacionCompetencias({ data, onChange }: 
   }, []);
 
   const auditorOptions = auditores.map((auditor) => ({
-    value: String(auditor.id),
+    value: String(auditor.documentId),
     label: auditor.Nombre,
   }));
 
   const empresaOptions = empresas.map((empresa) => ({
-    value: String(empresa.id),
+    value: String(empresa.documentId),
     label: empresa.Nombre,
   }));
 
@@ -94,7 +95,11 @@ export default function BaseInformeAcreditacionCompetencias({ data, onChange }: 
             options={auditorOptions}
             placeholder="Selecciona un auditor"
             value={data.auditor || ""}
-            onChange={(value: string) => onChange({ auditor: value })}
+            onChange={(value: string) => {
+              console.log(value)
+              onChange({ auditor: value })
+            }
+            }
           />
         </div>
 

@@ -9,9 +9,6 @@ import GestionDeControlAcreditacionCompetencias, { GestionDeControlData } from "
 import HabilitacionlAcreditacionCompetencias, { HabilitacionData } from "./steps/habilitacion";
 import Button from "@/components/ui/button/Button";
 
-// ------------------------------
-// Valores iniciales de cada paso
-// ------------------------------
 const initialBase: BaseInformeData = {
   nombre_informe: "",
   fecha: "",
@@ -27,7 +24,7 @@ const initialAcreditacion: AcreditacionData = {
   evaluador: "",
   rut_evaluador: "",
   observaciones: "",
-  evidencia: null,
+  scan_documento: null,
 };
 
 const initialProcedimiento: ProcedimientoGeneralData = {
@@ -54,44 +51,140 @@ const initialHabilitacion: HabilitacionData = {
   observaciones_resumen: "",
 };
 
-// ------------------------------
-// Componente principal
-// ------------------------------
 export default function FormAcreditacionCompetencias() {
   const [currentStep, setCurrentStep] = useState(0);
 
-  // Estados globales por paso
-  const [baseData, setBaseData] = useState<BaseInformeData>(initialBase);
-  const [acreditacionData, setAcreditacionData] = useState<AcreditacionData>(initialAcreditacion);
-  const [procedimientoData, setProcedimientoData] = useState<ProcedimientoGeneralData>(initialProcedimiento);
-  const [habitosData, setHabitosData] = useState<HabitosOperacionalesData>(initialHabitos);
-  const [gestionData, setGestionData] = useState<GestionDeControlData>(initialGestion);
-  const [habilitacionData, setHabilitacionData] = useState<HabilitacionData>(initialHabilitacion);
+  const [baseData, setBaseData] = useState(initialBase);
+  const [acreditacionData, setAcreditacionData] = useState(initialAcreditacion);
+  const [procedimientoData, setProcedimientoData] = useState(initialProcedimiento);
+  const [habitosData, setHabitosData] = useState(initialHabitos);
+  const [gestionData, setGestionData] = useState(initialGestion);
+  const [habilitacionData, setHabilitacionData] = useState(initialHabilitacion);
 
-  const next = () => {
-    if (currentStep < steps.length - 1) setCurrentStep((prev) => prev + 1);
+  const next = () => currentStep < steps.length - 1 && setCurrentStep((prev) => prev + 1);
+  const back = () => currentStep > 0 && setCurrentStep((prev) => prev - 1);
+
+  const token = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
+
+  const uploadFile = async (file: File): Promise<number | null> => {
+    const formData = new FormData();
+    formData.append("files", file);
+    try {
+      const res = await fetch("http://localhost:1337/api/upload", {
+        method: "POST",
+        body: formData,
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      return data[0]?.id ?? null;
+    } catch (error) {
+      console.error("❌ Error al subir archivo:", error);
+      return null;
+    }
   };
 
-  const back = () => {
-    if (currentStep > 0) setCurrentStep((prev) => prev - 1);
+  const replaceArchivos = async (requerimientos: any[]): Promise<any[]> => {
+    return await Promise.all(
+      requerimientos.map(async (item) => {
+        if (!item.calificacion) return null; // filtrar inválidos
+
+        const archivoId = item.archivos instanceof File
+          ? await uploadFile(item.archivos)
+          : item.archivos;
+
+        return {
+          nombre_requerimiento: item.nombre_requerimiento,
+          calificacion: item.calificacion.toLowerCase(),
+          comentario: item.comentario,
+          recomendacion: item.recomendacion,
+          archivos: archivoId ? [archivoId] : [],
+        };
+      })
+    ).then((items) => items.filter(Boolean));
   };
 
-  // Simulación de envío final
-  const submitForm = () => {
-    const fullData = {
-      ...baseData,
-      acreditacion: acreditacionData,
-      procedimiento: procedimientoData,
-      habitos: habitosData,
-      gestion: gestionData,
-      habilitacion: habilitacionData,
+  const uploadAllEvidence = async () => {
+    const scanId = acreditacionData.scan_documento instanceof File
+      ? await uploadFile(acreditacionData.scan_documento)
+      : acreditacionData.scan_documento;
+
+    return {
+      acreditacion: {
+        ...acreditacionData,
+        scan_documento: scanId,
+      },
+      procedimiento: {
+        ...procedimientoData,
+        requerimientos: await replaceArchivos(procedimientoData.requerimientos),
+      },
+
+      habitos: {
+        ...habitosData,
+        requerimientos: await replaceArchivos(habitosData.requerimientos),
+      },
     };
-
-    console.log("Formulario completo listo para enviar 💥:", fullData);
-    // Aquí más adelante: await fetch("http://localhost:1337/api/tu-endpoint", {...})
   };
 
-  // Steps configurados
+  const submitForm = async () => {
+    try {
+      const evidencias = await uploadAllEvidence();
+
+      const payload = {
+        data: {
+          base_informe: {
+            nombre_informe: baseData.nombre_informe,
+            fecha_informe: baseData.fecha || null,
+            auditor: baseData.auditor || null,
+            empresa: baseData.empresa || null,
+            pdf_informe: [],
+          },
+          procedimiento_general: {
+            calificacion: evidencias.procedimiento.calificacion_resumen?.toLowerCase() || null,
+            observaciones: evidencias.procedimiento.observaciones_resumen,
+            requerimiento: evidencias.procedimiento.requerimientos,
+          },
+          habitos_operacionales: {
+            calificacion: evidencias.habitos.calificacion_resumen?.toLowerCase() || null,
+            observaciones: evidencias.habitos.observaciones_resumen,
+            requerimiento: evidencias.habitos.requerimientos,
+          },
+          nombre_auditor: acreditacionData.auditor,
+          fecha_evaluacion: acreditacionData.fecha_evaluacion || null,
+          evaluacion_teorica: acreditacionData.evaluacion_teorica,
+          evaluacion_practica: acreditacionData.evaluacion_practica,
+          evaluador: acreditacionData.evaluador,
+          rut_evaluador: acreditacionData.rut_evaluador,
+          observacion: acreditacionData.observaciones,
+          scan_documento: evidencias.acreditacion.scan_documento
+            ? [evidencias.acreditacion.scan_documento]
+            : [],
+        },
+      };
+
+      const res = await fetch("http://localhost:1337/api/informes-acreditacion-de-competencias", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const text = await res.text();
+      const result = JSON.parse(text);
+
+      if (res.ok) {
+        alert("✅ Acreditación enviada con éxito");
+      } else {
+        console.error("❌ Error detallado desde Strapi:", result);
+        alert(`❌ Error: ${result.error?.message ?? "Ver consola"}`);
+      }
+    } catch (error) {
+      console.error("🚨 Error general al enviar:", error);
+      alert("🚨 Error general. Ver consola.");
+    }
+  };
+
   const steps = [
     {
       title: "Base",
@@ -102,62 +195,28 @@ export default function FormAcreditacionCompetencias() {
         />
       ),
     },
-    {
-      title: "Acreditación",
-      component: (
-        <AcreditacionCompetenciasAcreditacionCompetencias
-          data={acreditacionData}
-          onChange={(value) => setAcreditacionData((prev) => ({ ...prev, ...value }))}
-        />
-      ),
-    },
-    {
-      title: "Procedimiento",
-      component: (
-        <ProcedimientoGeneralAcreditacionCompetencias
-          data={procedimientoData}
-          onChange={(value) => setProcedimientoData((prev) => ({ ...prev, ...value }))}
-        />
-      ),
-    },
-    {
-      title: "Hábitos",
-      component: (
-        <HabitosOperacionalesAcreditacionCompetencias
-          data={habitosData}
-          onChange={(value) => setHabitosData((prev) => ({ ...prev, ...value }))}
-        />
-      ),
-    },
-    {
-      title: "Gestión",
-      component: (
-        <GestionDeControlAcreditacionCompetencias
-          data={gestionData}
-          onChange={(value) => setGestionData((prev) => ({ ...prev, ...value }))}
-        />
-      ),
-    },
-    {
-      title: "Habilitación",
-      component: (
-        <HabilitacionlAcreditacionCompetencias
-          data={habilitacionData}
-          onChange={(value) => setHabilitacionData((prev) => ({ ...prev, ...value }))}
-        />
-      ),
-    },
+    // {
+    //   title: "Acreditación",
+    //   component: (
+    //     <AcreditacionCompetenciasAcreditacionCompetencias
+    //       data={acreditacionData}
+    //       onChange={(value) => setAcreditacionData((prev) => ({ ...prev, ...value }))}
+    //     />
+    //   ),
+    // },
+    { title: "Procedimiento", component: <ProcedimientoGeneralAcreditacionCompetencias data={procedimientoData} onChange={(value) => setProcedimientoData((prev) => ({ ...prev, ...value }))} /> },
+    // { title: "Hábitos", component: <HabitosOperacionalesAcreditacionCompetencias data={habitosData} onChange={(value) => setHabitosData((prev) => ({ ...prev, ...value }))} /> },
+    // { title: "Gestión", component: <GestionDeControlAcreditacionCompetencias data={gestionData} onChange={(value) => setGestionData((prev) => ({ ...prev, ...value }))} /> },
+    // { title: "Habilitación", component: <HabilitacionlAcreditacionCompetencias data={habilitacionData} onChange={(value) => setHabilitacionData((prev) => ({ ...prev, ...value }))} /> },
   ];
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      {/* Progreso */}
       <div className="grid grid-cols-3 md:flex justify-between gap-4 mb-6">
         {steps.map((step, index) => (
           <div key={index} className="flex flex-col items-center flex-1">
             <div
-              className={`w-8 h-8 flex items-center justify-center rounded-full text-white text-sm font-bold ${index <= currentStep ? "bg-blue-600" : "bg-gray-300"
-                }`}
+              className={`w-8 h-8 flex items-center justify-center rounded-full text-white text-sm font-bold ${index <= currentStep ? "bg-blue-600" : "bg-gray-300"}`}
             >
               {index + 1}
             </div>
@@ -165,11 +224,7 @@ export default function FormAcreditacionCompetencias() {
           </div>
         ))}
       </div>
-
-      {/* Contenido */}
       <div className="mb-6">{steps[currentStep].component}</div>
-
-      {/* Navegación */}
       <div className="flex justify-between mt-4">
         <Button onClick={back} disabled={currentStep === 0}>Atrás</Button>
         {currentStep < steps.length - 1 ? (
