@@ -10,6 +10,42 @@
 # Authorization: Bearer 103c2f2da7c5be8f797bd5fdf3755bb0a38cea55f18e49d387d1b903c4d59ad1b071eb2c50da8d1f6591798c845745cc6bb2f33d4e803018566022e03540983b0bf43def421aae53cb8bc5988a65eb06436b0eebbb20502a2f397ab4abce78003f1bbdd3a91f37970f02a26c0cd806d90b4062a22443f76de7f06037f5014aa9
 
 
-GET http://localhost:1337/api/informes-acreditacion-de-competencias/eugs99z2027taabftj69ilv8
+# GET http://localhost:1337/api/informes-acreditacion-de-competencias/eugs99z2027taabftj69ilv8
+# Authorization: Bearer 103c2f2da7c5be8f797bd5fdf3755bb0a38cea55f18e49d387d1b903c4d59ad1b071eb2c50da8d1f6591798c845745cc6bb2f33d4e803018566022e03540983b0bf43def421aae53cb8bc5988a65eb06436b0eebbb20502a2f397ab4abce78003f1bbdd3a91f37970f02a26c0cd806d90b4062a22443f76de7f06037f5014aa9
+
+
+
+### Generar PDF con datos del formulario
+POST http://localhost:1337/api/informes-acreditacion-de-competencias/generar-pdf
+Content-Type: application/json
 Authorization: Bearer 103c2f2da7c5be8f797bd5fdf3755bb0a38cea55f18e49d387d1b903c4d59ad1b071eb2c50da8d1f6591798c845745cc6bb2f33d4e803018566022e03540983b0bf43def421aae53cb8bc5988a65eb06436b0eebbb20502a2f397ab4abce78003f1bbdd3a91f37970f02a26c0cd806d90b4062a22443f76de7f06037f5014aa9
 
+{
+  "base_informe": {
+    "nombre_informe": "Informe de prueba",
+    "fecha_informe": "2025-04-10",
+    "auditor": "Ross",
+    "empresa": "Wango Dev"
+  },
+  "nombre_auditor": "Ross",
+  "procedimiento_general": {
+    "requerimiento": [
+      {
+        "nombre_requerimiento": "Revisar documentación técnica",
+        "calificacion": "cumple",
+        "comentario": "Todo correcto",
+        "recomendacion": "Mantener actualizado",
+        "archivos": []
+      }
+    ]
+  },
+  "habitos_operacionales": {
+    "requerimiento": []
+  },
+  "gestion_de_control": {
+    "requerimiento": []
+  },
+  "habilitacion": {
+    "requerimiento": []
+  }
+}

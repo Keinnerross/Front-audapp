@@ -3,11 +3,11 @@
 import { useState } from "react";
 import BaseInformeAcreditacionCompetencias, { BaseInformeData } from "./steps/base_informe";
 import AcreditacionCompetenciasAcreditacionCompetencias, { AcreditacionData } from "./steps/acreditacion_competencias";
-import ProcedimientoGeneralAcreditacionCompetencias, { ProcedimientoGeneralData } from "./steps/procedimiento_general";
-import HabitosOperacionalesAcreditacionCompetencias, { HabitosOperacionalesData } from "./steps/habitos_operacionales";
-import GestionDeControlAcreditacionCompetencias, { GestionDeControlData } from "./steps/gestion_de_control";
-import HabilitacionlAcreditacionCompetencias, { HabilitacionData } from "./steps/habilitacion";
 import Button from "@/components/ui/button/Button";
+import ComponenteRequerimientos, { ComponenteData } from "@/components/audapp/componenteRequerimientos";
+import { getRequerimientosHabitosOperacionales, getRequerimientosGestionDeControl, getRequerimientosHabilitacion, getRequerimientosProcedimientoGeneral, generarPDF } from "@/lib/informe _acreditación";
+
+
 
 const initialBase: BaseInformeData = {
   nombre_informe: "",
@@ -27,42 +27,29 @@ const initialAcreditacion: AcreditacionData = {
   scan_documento: null,
 };
 
-const initialProcedimiento: ProcedimientoGeneralData = {
+const initialConRequerimientos: ComponenteData = {
   requerimientos: [],
   calificacion_resumen: "",
   observaciones_resumen: "",
 };
 
-const initialHabitos: HabitosOperacionalesData = {
-  requerimientos: [],
-  calificacion_resumen: "",
-  observaciones_resumen: "",
-};
-
-const initialGestion: GestionDeControlData = {
-  requerimientos: [],
-  calificacion_resumen: "",
-  observaciones_resumen: "",
-};
-
-const initialHabilitacion: HabilitacionData = {
-  requerimientos: [],
-  calificacion_resumen: "",
-  observaciones_resumen: "",
-};
 
 export default function FormAcreditacionCompetencias() {
   const [currentStep, setCurrentStep] = useState(0);
 
   const [baseData, setBaseData] = useState(initialBase);
   const [acreditacionData, setAcreditacionData] = useState(initialAcreditacion);
-  const [procedimientoData, setProcedimientoData] = useState(initialProcedimiento);
-  const [habitosData, setHabitosData] = useState(initialHabitos);
-  const [gestionData, setGestionData] = useState(initialGestion);
-  const [habilitacionData, setHabilitacionData] = useState(initialHabilitacion);
+  const [procedimientoData, setProcedimientoData] = useState(initialConRequerimientos);
+  const [habitosData, setHabitosData] = useState(initialConRequerimientos);
+  const [gestionData, setGestionData] = useState(initialConRequerimientos);
+  const [habilitacionData, setHabilitacionData] = useState(initialConRequerimientos);
 
   const next = () => currentStep < steps.length - 1 && setCurrentStep((prev) => prev + 1);
   const back = () => currentStep > 0 && setCurrentStep((prev) => prev - 1);
+
+  const updateData = (value: any, setstate: any) => {
+    setstate((prev: any) => ({ ...prev, ...value }))
+  }
 
   const token = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
@@ -86,19 +73,19 @@ export default function FormAcreditacionCompetencias() {
   const replaceArchivos = async (requerimientos: any[]): Promise<any[]> => {
     return await Promise.all(
       requerimientos.map(async (item) => {
-        if (!item.calificacion) return null; // filtrar inválidos
-
         const archivoId = item.archivos instanceof File
           ? await uploadFile(item.archivos)
           : item.archivos;
 
-        return {
+        const dataFormated = {
           nombre_requerimiento: item.nombre_requerimiento,
-          calificacion: item.calificacion.toLowerCase(),
+          calificacion: item.calificacion ? item.calificacion.toLowerCase() : item.calificacion,
           comentario: item.comentario,
           recomendacion: item.recomendacion,
           archivos: archivoId ? [archivoId] : [],
         };
+
+        return dataFormated;
       })
     ).then((items) => items.filter(Boolean));
   };
@@ -117,10 +104,18 @@ export default function FormAcreditacionCompetencias() {
         ...procedimientoData,
         requerimientos: await replaceArchivos(procedimientoData.requerimientos),
       },
-
       habitos: {
         ...habitosData,
         requerimientos: await replaceArchivos(habitosData.requerimientos),
+      },
+
+      gestion: {
+        ...gestionData,
+        requerimientos: await replaceArchivos(gestionData.requerimientos),
+      },
+      habilitacion: {
+        ...habilitacionData,
+        requerimientos: await replaceArchivos(habilitacionData.requerimientos),
       },
     };
   };
@@ -136,7 +131,7 @@ export default function FormAcreditacionCompetencias() {
             fecha_informe: baseData.fecha || null,
             auditor: baseData.auditor || null,
             empresa: baseData.empresa || null,
-            pdf_informe: [],
+            // informe: 
           },
           procedimiento_general: {
             calificacion: evidencias.procedimiento.calificacion_resumen?.toLowerCase() || null,
@@ -148,6 +143,18 @@ export default function FormAcreditacionCompetencias() {
             observaciones: evidencias.habitos.observaciones_resumen,
             requerimiento: evidencias.habitos.requerimientos,
           },
+          gestion_de_control: {
+            calificacion: evidencias.gestion.calificacion_resumen?.toLowerCase() || null,
+            observaciones: evidencias.gestion.observaciones_resumen,
+            requerimiento: evidencias.gestion.requerimientos,
+          },
+          habilitacion: {
+            calificacion: evidencias.habilitacion.calificacion_resumen?.toLowerCase() || null,
+            observaciones: evidencias.habilitacion.observaciones_resumen,
+            requerimiento: evidencias.habilitacion.requerimientos,
+          },
+
+
           nombre_auditor: acreditacionData.auditor,
           fecha_evaluacion: acreditacionData.fecha_evaluacion || null,
           evaluacion_teorica: acreditacionData.evaluacion_teorica,
@@ -160,6 +167,11 @@ export default function FormAcreditacionCompetencias() {
             : [],
         },
       };
+
+
+
+
+
 
       const res = await fetch("http://localhost:1337/api/informes-acreditacion-de-competencias", {
         method: "POST",
@@ -174,11 +186,20 @@ export default function FormAcreditacionCompetencias() {
       const result = JSON.parse(text);
 
       if (res.ok) {
-        alert("✅ Acreditación enviada con éxito");
+        const idAcreditacion = result.data.id;
+        console.log(idAcreditacion)
+
+        await generarPDF({
+          ...payload.data,
+          id_acreditacion: idAcreditacion, // 👈 lo pasamos al backend
+        });
       } else {
-        console.error("❌ Error detallado desde Strapi:", result);
-        alert(`❌ Error: ${result.error?.message ?? "Ver consola"}`);
+        console.log("📛 Detalle del error:", JSON.stringify(result.error, null, 2));
+        return;
+        // alert(`❌ Error: ${result.error?.message ?? "Ver consola"}`);
       }
+
+
     } catch (error) {
       console.error("🚨 Error general al enviar:", error);
       alert("🚨 Error general. Ver consola.");
@@ -191,27 +212,81 @@ export default function FormAcreditacionCompetencias() {
       component: (
         <BaseInformeAcreditacionCompetencias
           data={baseData}
-          onChange={(value) => setBaseData((prev) => ({ ...prev, ...value }))}
+          updateData={(value) => updateData(value, setBaseData)}
         />
       ),
     },
-    // {
-    //   title: "Acreditación",
-    //   component: (
-    //     <AcreditacionCompetenciasAcreditacionCompetencias
-    //       data={acreditacionData}
-    //       onChange={(value) => setAcreditacionData((prev) => ({ ...prev, ...value }))}
-    //     />
-    //   ),
-    // },
-    { title: "Procedimiento", component: <ProcedimientoGeneralAcreditacionCompetencias data={procedimientoData} onChange={(value) => setProcedimientoData((prev) => ({ ...prev, ...value }))} /> },
-    // { title: "Hábitos", component: <HabitosOperacionalesAcreditacionCompetencias data={habitosData} onChange={(value) => setHabitosData((prev) => ({ ...prev, ...value }))} /> },
-    // { title: "Gestión", component: <GestionDeControlAcreditacionCompetencias data={gestionData} onChange={(value) => setGestionData((prev) => ({ ...prev, ...value }))} /> },
-    // { title: "Habilitación", component: <HabilitacionlAcreditacionCompetencias data={habilitacionData} onChange={(value) => setHabilitacionData((prev) => ({ ...prev, ...value }))} /> },
+
+    {
+
+      title: "Acreditación",
+      component: (
+        <AcreditacionCompetenciasAcreditacionCompetencias
+          data={acreditacionData}
+          updateData={(value) => updateData(value, setAcreditacionData)}
+        />
+      ),
+    },
+
+    {
+      title: "Procedimiento",
+      component: (
+        <ComponenteRequerimientos
+          key='procedimiento'
+          title="Procedimiento General"
+          data={procedimientoData}
+          updateData={(value) => updateData(value, setProcedimientoData)}
+          fetchRequerimientos={getRequerimientosProcedimientoGeneral}
+        />
+      ),
+    },
+
+
+
+
+    {
+      title: "Hábitos",
+      component: (
+        <ComponenteRequerimientos
+          key='habitos'
+
+          title="Habitos Operacionales"
+          data={habitosData}
+          updateData={(value) => updateData(value, setHabitosData)}
+          fetchRequerimientos={getRequerimientosHabitosOperacionales}
+        />
+      ),
+    },
+
+    {
+      title: "Gestión",
+      component: (
+        <ComponenteRequerimientos
+          key="gestion"
+          title="Gestión de control"
+          data={gestionData}
+          updateData={(value) => updateData(value, setGestionData)}
+          fetchRequerimientos={getRequerimientosGestionDeControl}
+
+        />
+      ),
+    },
+    {
+      title: "Habilitación",
+      component: (
+        <ComponenteRequerimientos
+          key="habilitacion"
+          title="Habilitación"
+          data={habilitacionData}
+          updateData={(value) => updateData(value, setHabilitacionData)}
+          fetchRequerimientos={getRequerimientosHabilitacion}
+        />
+      ),
+    },
   ];
 
   return (
-    <div className="max-w-3xl mx-auto p-4">
+    <div className=" mx-auto p-4">
       <div className="grid grid-cols-3 md:flex justify-between gap-4 mb-6">
         {steps.map((step, index) => (
           <div key={index} className="flex flex-col items-center flex-1">

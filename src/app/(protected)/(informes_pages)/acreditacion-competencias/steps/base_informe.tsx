@@ -21,11 +21,11 @@ export interface BaseInformeData {
 // Props que el padre le pasa al componente
 interface Props {
   data: BaseInformeData;
-  onChange: (value: Partial<BaseInformeData>) => void;
+  updateData: (value: Partial<BaseInformeData>) => void;
 }
 
 
-export default function BaseInformeAcreditacionCompetencias({ data, onChange }: Props) {
+export default function BaseInformeAcreditacionCompetencias({ data, updateData }: Props) {
   const [auditores, setAuditores] = useState<any[]>([]);
   const [empresas, setEmpresas] = useState<any[]>([]);
 
@@ -65,7 +65,7 @@ export default function BaseInformeAcreditacionCompetencias({ data, onChange }: 
           label="Nombre del Informe"
           defaultValue={data.nombre_informe || ""}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            onChange({ nombre_informe: e.target.value })
+            updateData({ nombre_informe: e.target.value })
           }
         />
 
@@ -79,7 +79,7 @@ export default function BaseInformeAcreditacionCompetencias({ data, onChange }: 
               name="fecha"
               value={data.fecha || ""}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                onChange({ fecha: e.target.value })
+                updateData({ fecha: e.target.value })
               }
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
@@ -97,7 +97,7 @@ export default function BaseInformeAcreditacionCompetencias({ data, onChange }: 
             value={data.auditor || ""}
             onChange={(value: string) => {
               console.log(value)
-              onChange({ auditor: value })
+              updateData({ auditor: value })
             }
             }
           />
@@ -110,7 +110,7 @@ export default function BaseInformeAcreditacionCompetencias({ data, onChange }: 
             options={empresaOptions}
             placeholder="Selecciona una empresa"
             value={data.empresa || ""}
-            onChange={(value: string) => onChange({ empresa: value })}
+            onChange={(value: string) => updateData({ empresa: value })}
           />
         </div>
       </Section>

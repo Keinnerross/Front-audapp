@@ -26,10 +26,10 @@ export interface AcreditacionData {
 // Props esperados desde el componente padre
 interface Props {
   data: AcreditacionData;
-  onChange: (value: Partial<AcreditacionData>) => void;
+  updateData: (value: Partial<AcreditacionData>) => void;
 }
 
-export default function AcreditacionCompetenciasAcreditacionCompetencias({ data, onChange }: Props) {
+export default function AcreditacionCompetenciasAcreditacionCompetencias({ data, updateData }: Props) {
   const [auditores, setAuditores] = useState<any[]>([]);
 
   useEffect(() => {
@@ -61,7 +61,7 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
               options={auditorOptions}
               placeholder="Selecciona un auditor"
               value={data.auditor}
-              onChange={(value: string) => onChange({ auditor: value })}
+              onChange={(value: string) => updateData({ auditor: value })}
             />
           </div>
 
@@ -73,7 +73,7 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
                 id="fecha_evaluacion"
                 name="fecha_evaluacion"
                 value={data.fecha_evaluacion}
-                onChange={(e) => onChange({ fecha_evaluacion: e.target.value })}
+                onChange={(e) => updateData({ fecha_evaluacion: e.target.value })}
               />
               <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
                 <CalenderIcon />
@@ -86,7 +86,7 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
             label="Evaluación teórica"
             defaultValue={data.evaluacion_teorica}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              onChange({ evaluacion_teorica: e.target.value })
+              updateData({ evaluacion_teorica: e.target.value })
             }
           />
 
@@ -95,7 +95,7 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
             label="Evaluación práctica"
             defaultValue={data.evaluacion_practica}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              onChange({ evaluacion_practica: e.target.value })
+              updateData({ evaluacion_practica: e.target.value })
             }
           />
 
@@ -104,7 +104,7 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
             label="Evaluador"
             defaultValue={data.evaluador}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              onChange({ evaluador: e.target.value })
+              updateData({ evaluador: e.target.value })
             }
           />
 
@@ -113,7 +113,7 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
             label="Rut Evaluador"
             defaultValue={data.rut_evaluador}
             onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-              onChange({ rut_evaluador: e.target.value })
+              updateData({ rut_evaluador: e.target.value })
             }
           />
 
@@ -122,7 +122,7 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
             label="Observaciones"
             defaultValue={data.observaciones}
             onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-              onChange({ observaciones: e.target.value })
+              updateData({ observaciones: e.target.value })
             }
           />
 
@@ -131,8 +131,7 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
             label="Scan Documento"
             onDrop={(files: File[]) => {
               if (files.length > 0) {
-                console.log("✅ Archivo que se envía al padre:", files[0]);
-                onChange({ scan_documento: files[0] });
+                updateData({ scan_documento: files[0] });
               }
             }}
           />

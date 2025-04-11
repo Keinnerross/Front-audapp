@@ -49,3 +49,40 @@ export const getRequerimientosHabilitacion = async () => {
     const data = response.data.data.habilitacion.requerimiento;
     return data;    
 };
+
+
+
+//POST GENERAR PDF
+
+export const generarPDF = async (payload: any) => {
+    const token = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
+  
+    try {
+      const res = await fetch("http://localhost:1337/api/informes-acreditacion-de-competencias/generar-pdf", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(payload), 
+      });
+  
+      const result = await res.json();
+  
+      if (!res.ok) {
+        console.error("❌ Error al generar PDF:", result.error || result);
+        alert("❌ Falló la generación del PDF. Ver consola.");
+        return null;
+      }
+  
+      console.log("✅ PDF generado:", result);
+      alert("✅ PDF generado y subido con éxito");
+      return result;
+  
+    } catch (error) {
+      console.error("❌ Error general al llamar a generarPDF:", error);
+      alert("❌ Error general al generar PDF");
+      return null;
+    }
+  };
+  

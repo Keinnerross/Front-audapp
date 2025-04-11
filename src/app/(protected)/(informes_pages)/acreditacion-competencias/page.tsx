@@ -12,10 +12,15 @@ export default function AcreditacionCompetencias() {
 
 
   return (
-    <div>
-      <PageBreadcrumb pageTitle="Acreditación de competencias" />
-      <FormAcreditacionCompetencias />
+
+    <div className="w-full flex flex-col items-center">
+      <div className="max-w-[1240px] w-full">
+        <PageBreadcrumb pageTitle="Acreditación de competencias" />
+        <FormAcreditacionCompetencias />
+      </div>
+
     </div>
+
 
   );
 }
