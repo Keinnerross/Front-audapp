@@ -9,12 +9,13 @@ import { getEmpresas } from "@/lib/empresas";
 import DefaultInputs from "@/components/form/form-elements/DefaultInputs";
 import Input from "@/components/form/input/InputField";
 import { CalenderIcon } from "@/icons";
+import MultiSelect from "@/components/form/MultiSelect";
 
 // Tipo local para los datos de este paso
 export interface BaseInformeData {
   nombre_informe: string;
   fecha: string;
-  auditor: string; // ID del auditor seleccionado
+  auditor: string[]; // ID del auditor seleccionado
   empresa: string; // ID de la empresa seleccionada
 }
 
@@ -51,10 +52,21 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
     label: auditor.Nombre,
   }));
 
+
   const empresaOptions = empresas.map((empresa) => ({
     value: String(empresa.documentId),
     label: empresa.Nombre,
   }));
+
+
+  const testoptions = auditores.map((auditor) => ({
+    value: String(auditor.documentId),
+    label: auditor.Nombre,
+    text: auditor.Nombre,
+    selected: false,
+
+  }));
+
 
   return (
     <div id="form-acreditacion" className="p-6 space-y-10">
@@ -68,6 +80,10 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
             updateData({ nombre_informe: e.target.value })
           }
         />
+
+
+
+
 
         {/* Fecha */}
         <div className="relative">
@@ -89,19 +105,17 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
         </div>
 
         {/* Selección de auditor */}
-        <div>
-          <Label>Seleccionar Auditor</Label>
-          <Select
-            options={auditorOptions}
-            placeholder="Selecciona un auditor"
-            value={data.auditor || ""}
-            onChange={(value: string) => {
-              console.log(value)
-              updateData({ auditor: value })
-            }
-            }
-          />
-        </div>
+        {/* Es multiselección */}
+        <MultiSelect
+          label="Seleccionar Auditores"
+          options={testoptions}
+          placeholder="Selecciona uno o más auditores"
+          searchable={true}
+          onChange={(value: string[]) => {
+            updateData({ auditor: value })
+          }
+          } />
+
 
         {/* Selección de empresa */}
         <div>

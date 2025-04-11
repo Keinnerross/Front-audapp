@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 
 interface CustomProps {
   success?: boolean;
@@ -14,8 +14,18 @@ const Input: React.FC<InputProps> = ({
   success = false,
   error = false,
   hint,
+  type,
   ...props
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleWrapperClick = () => {
+    if (type === "date" && inputRef.current) {
+      inputRef.current.showPicker?.(); // en browsers modernos
+      inputRef.current.focus(); // fallback
+    }
+  };
+
   let inputClasses = `h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-none focus:ring dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 ${className}`;
 
   if (disabled) {
@@ -29,8 +39,10 @@ const Input: React.FC<InputProps> = ({
   }
 
   return (
-    <div className="relative">
+    <div className="relative" onClick={handleWrapperClick}>
       <input
+        ref={inputRef}
+        type={type}
         {...props}
         className={inputClasses}
         disabled={disabled}

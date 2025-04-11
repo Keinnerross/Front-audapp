@@ -12,7 +12,7 @@ import { getRequerimientosHabitosOperacionales, getRequerimientosGestionDeContro
 const initialBase: BaseInformeData = {
   nombre_informe: "",
   fecha: "",
-  auditor: "",
+  auditor: [],
   empresa: "",
 };
 
@@ -191,7 +191,7 @@ export default function FormAcreditacionCompetencias() {
 
         await generarPDF({
           ...payload.data,
-          id_acreditacion: idAcreditacion, // 👈 lo pasamos al backend
+          id_acreditacion: idAcreditacion, // 👈 lo pasamos al backend este es el id del documento creado en el entry de acreditacion_competencia
         });
       } else {
         console.log("📛 Detalle del error:", JSON.stringify(result.error, null, 2));
@@ -217,72 +217,72 @@ export default function FormAcreditacionCompetencias() {
       ),
     },
 
-    {
+    // {
 
-      title: "Acreditación",
-      component: (
-        <AcreditacionCompetenciasAcreditacionCompetencias
-          data={acreditacionData}
-          updateData={(value) => updateData(value, setAcreditacionData)}
-        />
-      ),
-    },
+    //   title: "Acreditación",
+    //   component: (
+    //     <AcreditacionCompetenciasAcreditacionCompetencias
+    //       data={acreditacionData}
+    //       updateData={(value) => updateData(value, setAcreditacionData)}
+    //     />
+    //   ),
+    // },
 
-    {
-      title: "Procedimiento",
-      component: (
-        <ComponenteRequerimientos
-          key='procedimiento'
-          title="Procedimiento General"
-          data={procedimientoData}
-          updateData={(value) => updateData(value, setProcedimientoData)}
-          fetchRequerimientos={getRequerimientosProcedimientoGeneral}
-        />
-      ),
-    },
-
-
+    // {
+    //   title: "Procedimiento",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key='procedimiento'
+    //       title="Procedimiento General"
+    //       data={procedimientoData}
+    //       updateData={(value) => updateData(value, setProcedimientoData)}
+    //       fetchRequerimientos={getRequerimientosProcedimientoGeneral}
+    //     />
+    //   ),
+    // },
 
 
-    {
-      title: "Hábitos",
-      component: (
-        <ComponenteRequerimientos
-          key='habitos'
 
-          title="Habitos Operacionales"
-          data={habitosData}
-          updateData={(value) => updateData(value, setHabitosData)}
-          fetchRequerimientos={getRequerimientosHabitosOperacionales}
-        />
-      ),
-    },
 
-    {
-      title: "Gestión",
-      component: (
-        <ComponenteRequerimientos
-          key="gestion"
-          title="Gestión de control"
-          data={gestionData}
-          updateData={(value) => updateData(value, setGestionData)}
-          fetchRequerimientos={getRequerimientosGestionDeControl}
+    // {
+    //   title: "Hábitos",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key='habitos'
 
-        />
-      ),
-    },
-    {
-      title: "Habilitación",
-      component: (
-        <ComponenteRequerimientos
-          key="habilitacion"
-          title="Habilitación"
-          data={habilitacionData}
-          updateData={(value) => updateData(value, setHabilitacionData)}
-          fetchRequerimientos={getRequerimientosHabilitacion}
-        />
-      ),
-    },
+    //       title="Habitos Operacionales"
+    //       data={habitosData}
+    //       updateData={(value) => updateData(value, setHabitosData)}
+    //       fetchRequerimientos={getRequerimientosHabitosOperacionales}
+    //     />
+    //   ),
+    // },
+
+    // {
+    //   title: "Gestión",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key="gestion"
+    //       title="Gestión de control"
+    //       data={gestionData}
+    //       updateData={(value) => updateData(value, setGestionData)}
+    //       fetchRequerimientos={getRequerimientosGestionDeControl}
+
+    //     />
+    //   ),
+    // },
+    // {
+    //   title: "Habilitación",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key="habilitacion"
+    //       title="Habilitación"
+    //       data={habilitacionData}
+    //       updateData={(value) => updateData(value, setHabilitacionData)}
+    //       fetchRequerimientos={getRequerimientosHabilitacion}
+    //     />
+    //   ),
+    // },
   ];
 
   return (
