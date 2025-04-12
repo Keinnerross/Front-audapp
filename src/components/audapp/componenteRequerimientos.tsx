@@ -6,6 +6,8 @@ import Label from "@/components/form/Label";
 import Select from "@/components/form/Select";
 import TextAreaInput from "@/components/form/form-elements/TextAreaInput";
 import DropzoneComponent from "@/components/form/form-elements/DropZone";
+import TextAreaInputAI from "../form/form-elements/TextAreaInputAI";
+import { mejorarComentarioIA } from "@/lib/IA/gemini";
 
 // Tipos
 export interface ComponenteRequerimiento {
@@ -80,19 +82,32 @@ export default function ComponenteRequerimientos({ title, data, updateData, fetc
                                     onChange={(value) => updateRequerimiento(index, { calificacion: value })}
                                 />
 
-                                <TextAreaInput
+                                <TextAreaInputAI
                                     name={`comentario_${index}`}
                                     label="Comentario"
-                                    defaultValue={data.requerimientos[index]?.comentario || ""}
+                                    value={data.requerimientos[index]?.comentario ?? ""}
+                                    onImprove={async (text) => {
+
+                                        const textoMejorado: string = await mejorarComentarioIA(text)
+
+                                        console.log("Texto mejorado:", textoMejorado)
+                                        // Simulación
+                                        return textoMejorado;
+                                    }}
                                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                                         updateRequerimiento(index, { comentario: e.target.value })
                                     }
                                 />
 
-                                <TextAreaInput
+                                <TextAreaInputAI
                                     name={`recomendacion_${index}`}
                                     label="Recomendación"
-                                    defaultValue={data.requerimientos[index]?.recomendacion || ""}
+                                    value={data.requerimientos[index]?.recomendacion ?? ""}
+                                    onImprove={async (text) => {
+
+                                        // Simulación
+                                        return text + " (mejorado ✨)";
+                                    }}
                                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                                         updateRequerimiento(index, { recomendacion: e.target.value })
                                     }
@@ -121,10 +136,14 @@ export default function ComponenteRequerimientos({ title, data, updateData, fetc
                         onChange={(value: string) => updateData({ calificacion_resumen: value })}
                     />
 
-                    <TextAreaInput
+                    <TextAreaInputAI
                         name="observaciones_habitos_operacionales"
                         label="Observaciones"
-                        defaultValue={data.observaciones_resumen}
+                        value={data.observaciones_resumen ? data.observaciones_resumen : ''}
+                        onImprove={async (text) => {
+                            // Simulación
+                            return text + " (mejorado ✨)";
+                        }}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                             updateData({ observaciones_resumen: e.target.value })
                         }

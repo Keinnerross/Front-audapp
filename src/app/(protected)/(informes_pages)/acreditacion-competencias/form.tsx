@@ -250,41 +250,41 @@ export default function FormAcreditacionCompetencias() {
         />
       ),
     },
-    {
+    // {
 
-      title: "Acreditación",
+    //   title: "Acreditación",
+    //   component: (
+    //     <AcreditacionCompetenciasAcreditacionCompetencias
+    //       data={acreditacionData}
+    //       updateData={(value) => updateData(value, setAcreditacionData)}
+    //     />
+    //   ),
+    // },
+
+    {
+      title: "Procedimiento",
       component: (
-        <AcreditacionCompetenciasAcreditacionCompetencias
-          data={acreditacionData}
-          updateData={(value) => updateData(value, setAcreditacionData)}
+        <ComponenteRequerimientos
+          key='procedimiento'
+          title="Procedimiento General"
+          data={procedimientoData}
+          updateData={(value) => updateData(value, setProcedimientoData)}
+          fetchRequerimientos={getRequerimientosProcedimientoGeneral}
         />
       ),
     },
-
-    // {
-    //   title: "Procedimiento",
-    //   component: (
-    //     <ComponenteRequerimientos
-    //       key='procedimiento'
-    //       title="Procedimiento General"
-    //       data={procedimientoData}
-    //       updateData={(value) => updateData(value, setProcedimientoData)}
-    //       fetchRequerimientos={getRequerimientosProcedimientoGeneral}
-    //     />
-    //   ),
-    // },
-    // {
-    //   title: "Hábitos",
-    //   component: (
-    //     <ComponenteRequerimientos
-    //       key='habitos'
-    //       title="Habitos Operacionales"
-    //       data={habitosData}
-    //       updateData={(value) => updateData(value, setHabitosData)}
-    //       fetchRequerimientos={getRequerimientosHabitosOperacionales}
-    //     />
-    //   ),
-    // },
+    {
+      title: "Hábitos",
+      component: (
+        <ComponenteRequerimientos
+          key='habitos'
+          title="Habitos Operacionales"
+          data={habitosData}
+          updateData={(value) => updateData(value, setHabitosData)}
+          fetchRequerimientos={getRequerimientosHabitosOperacionales}
+        />
+      ),
+    },
 
     // {
     //   title: "Gestión",
