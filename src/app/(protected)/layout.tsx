@@ -6,6 +6,7 @@ import AppSidebar from "@/layout/AppSidebar";
 import Backdrop from "@/layout/Backdrop";
 import React, { useEffect } from "react";
 import { redirect } from 'next/navigation';
+import PageBreadcrumb from "@/components/common/PageBreadCrumb";
 
 export default function AdminLayout({
   children,
@@ -43,7 +44,8 @@ export default function AdminLayout({
         {/* Header */}
         <AppHeader />
         {/* Page Content */}
-        <div className="p-4 mx-auto max-w-screen-2xl md:p-6">{children}</div>
+        <div className="p-4 mx-auto max-w-screen-2xl md:p-6">
+        {children}</div>
       </div>
     </div>
   );

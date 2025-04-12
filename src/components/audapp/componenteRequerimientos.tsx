@@ -10,10 +10,10 @@ import DropzoneComponent from "@/components/form/form-elements/DropZone";
 // Tipos
 export interface ComponenteRequerimiento {
     nombre_requerimiento: string;
-    calificacion: string;
+    calificacion: string | null;
     comentario: string;
     recomendacion: string;
-    archivos: File | null;
+    archivos: File[] | null;
 }
 
 export interface ComponenteData {
@@ -33,34 +33,22 @@ export default function ComponenteRequerimientos({ title, data, updateData, fetc
     const calificaciones = ["cumple", "no cumple", "oportunidad de mejora", "no aplica"];
     const calificacionesResumen = ["conforme", "no conforme", "con observaciones", "no aplica"];
     const [requerimientosAPI, setRequerimientosAPI] = useState<any[]>([]);
-
     const calificacionesOptions = calificaciones.map((c) => ({ value: c, label: c }));
-
     const calificacionesResumenOptions = calificacionesResumen.map((c) => ({ value: c, label: c }));
 
+    const mainFetch = async () => {
+        try {
+            const res = await fetchRequerimientos();
+            setRequerimientosAPI(res);
+        } catch (error) {
+            alert("Error al cargar los requerimientos iniciales: ");
+            console.error(error);
+        }
+    }
+
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const res = await fetchRequerimientos();
-                setRequerimientosAPI(res);
-
-                const requerimientosIniciales = res.map((item: any) => ({
-                    nombre_requerimiento: item.nombre_requerimiento,
-                    calificacion: null,
-                    comentario: "",
-                    recomendacion: "",
-                    archivos: null,
-                }));
-
-                updateData({ requerimientos: requerimientosIniciales });
-            } catch (error) {
-                console.error("Error cargando requerimientos:", error);
-            }
-        };
-
-        fetchData();
+        mainFetch();
     }, []);
-
 
     const updateRequerimiento = (index: number, newData: Partial<ComponenteRequerimiento>) => {
         const updated = [...data.requerimientos];
@@ -87,7 +75,7 @@ export default function ComponenteRequerimientos({ title, data, updateData, fetc
                                 <Select
                                     options={calificacionesOptions}
                                     placeholder="Selecciona una calificación"
-                                    value={data.requerimientos[index]?.calificacion || ""}
+                                    defaultValue={data.requerimientos[index]?.calificacion || ""}
                                     required={true}
                                     onChange={(value) => updateRequerimiento(index, { calificacion: value })}
                                 />
@@ -113,9 +101,9 @@ export default function ComponenteRequerimientos({ title, data, updateData, fetc
                                 <DropzoneComponent
                                     name={`archivos_${index}`}
                                     label="Archivos"
-                                    defaultValue=""
+                                    defaultValue={data.requerimientos[index]?.archivos || []}
                                     onDrop={(files: File[]) => {
-                                        updateRequerimiento(index, { archivos: files[0] })
+                                        updateRequerimiento(index, { archivos: files })
                                     }
                                     }
                                 />
@@ -129,7 +117,7 @@ export default function ComponenteRequerimientos({ title, data, updateData, fetc
                     <Select
                         options={calificacionesResumenOptions}
                         placeholder="Selecciona una calificación"
-                        value={data.calificacion_resumen}
+                        defaultValue={data.calificacion_resumen}
                         onChange={(value: string) => updateData({ calificacion_resumen: value })}
                     />
 

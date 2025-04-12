@@ -6,6 +6,9 @@ import AcreditacionCompetenciasAcreditacionCompetencias, { AcreditacionData } fr
 import Button from "@/components/ui/button/Button";
 import ComponenteRequerimientos, { ComponenteData } from "@/components/audapp/componenteRequerimientos";
 import { getRequerimientosHabitosOperacionales, getRequerimientosGestionDeControl, getRequerimientosHabilitacion, getRequerimientosProcedimientoGeneral, generarPDF } from "@/lib/informe _acreditación";
+import LoadingOverlay from "@/components/common/loaderFullPage";
+import { useRouter } from "next/navigation";
+
 
 
 
@@ -43,6 +46,11 @@ export default function FormAcreditacionCompetencias() {
   const [habitosData, setHabitosData] = useState(initialConRequerimientos);
   const [gestionData, setGestionData] = useState(initialConRequerimientos);
   const [habilitacionData, setHabilitacionData] = useState(initialConRequerimientos);
+  const [loading, setLoading] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+
+  const router = useRouter();
+
 
   const next = () => currentStep < steps.length - 1 && setCurrentStep((prev) => prev + 1);
   const back = () => currentStep > 0 && setCurrentStep((prev) => prev - 1);
@@ -73,32 +81,48 @@ export default function FormAcreditacionCompetencias() {
   const replaceArchivos = async (requerimientos: any[]): Promise<any[]> => {
     return await Promise.all(
       requerimientos.map(async (item) => {
-        const archivoId = item.archivos instanceof File
-          ? await uploadFile(item.archivos)
-          : item.archivos;
+        if (!item || !item.nombre_requerimiento) return null; // ⚠️ protección extra
 
-        const dataFormated = {
+        let archivoIds: number[] = [];
+
+        if (Array.isArray(item.archivos)) {
+          const uploads = await Promise.all(
+            item.archivos.map(async (file: File) => {
+              if (file instanceof File) return await uploadFile(file);
+              return file; // ya es ID
+            })
+          );
+          archivoIds = uploads.filter(Boolean);
+        }
+
+        console.log(archivoIds);
+        return {
           nombre_requerimiento: item.nombre_requerimiento,
-          calificacion: item.calificacion ? item.calificacion.toLowerCase() : item.calificacion,
-          comentario: item.comentario,
-          recomendacion: item.recomendacion,
-          archivos: archivoId ? [archivoId] : [],
+          calificacion: item.calificacion?.toLowerCase() || null,
+          comentario: item.comentario || "",
+          recomendacion: item.recomendacion || "",
+          archivos: archivoIds ? archivoIds : [],
         };
-
-        return dataFormated;
       })
-    ).then((items) => items.filter(Boolean));
+    ).then(items => items.filter(Boolean)); // ⚠️ elimina nulls
   };
 
+
+
   const uploadAllEvidence = async () => {
-    const scanId = acreditacionData.scan_documento instanceof File
-      ? await uploadFile(acreditacionData.scan_documento)
-      : acreditacionData.scan_documento;
+
+    const scanIds = Array.isArray(acreditacionData.scan_documento)
+      ? await Promise.all(
+        acreditacionData.scan_documento.map(async (file: File) =>
+          file instanceof File ? await uploadFile(file) : file
+        )
+      )
+      : [];
 
     return {
       acreditacion: {
         ...acreditacionData,
-        scan_documento: scanId,
+        scan_documento: scanIds,
       },
       procedimiento: {
         ...procedimientoData,
@@ -121,7 +145,13 @@ export default function FormAcreditacionCompetencias() {
   };
 
   const submitForm = async () => {
+    // o usa este hook dentro del componente si aún no está
+
+    console.log(acreditacionData)
+
     try {
+      setLoading(true); // ⏳ Inicia loading
+
       const evidencias = await uploadAllEvidence();
 
       const payload = {
@@ -131,7 +161,6 @@ export default function FormAcreditacionCompetencias() {
             fecha_informe: baseData.fecha || null,
             auditor: baseData.auditor || null,
             empresa: baseData.empresa || null,
-            // informe: 
           },
           procedimiento_general: {
             calificacion: evidencias.procedimiento.calificacion_resumen?.toLowerCase() || null,
@@ -153,8 +182,6 @@ export default function FormAcreditacionCompetencias() {
             observaciones: evidencias.habilitacion.observaciones_resumen,
             requerimiento: evidencias.habilitacion.requerimientos,
           },
-
-
           nombre_auditor: acreditacionData.auditor,
           fecha_evaluacion: acreditacionData.fecha_evaluacion || null,
           evaluacion_teorica: acreditacionData.evaluacion_teorica,
@@ -163,17 +190,13 @@ export default function FormAcreditacionCompetencias() {
           rut_evaluador: acreditacionData.rut_evaluador,
           observacion: acreditacionData.observaciones,
           scan_documento: evidencias.acreditacion.scan_documento
-            ? [evidencias.acreditacion.scan_documento]
+            ? evidencias.acreditacion.scan_documento
             : [],
         },
       };
 
-
-
-
-
-
-      const res = await fetch("http://localhost:1337/api/informes-acreditacion-de-competencias", {
+      // Crear entrada en Strapi
+      const res = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_HOST}/api/informes-acreditacion-de-competencias`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -182,29 +205,40 @@ export default function FormAcreditacionCompetencias() {
         body: JSON.stringify(payload),
       });
 
-      const text = await res.text();
-      const result = JSON.parse(text);
+      const result = await res.json();
 
-      if (res.ok) {
-        const idAcreditacion = result.data.id;
-        console.log(idAcreditacion)
+      if (!res.ok) {
+        console.error("📛 Error al guardar informe:", result.error?.message);
+        console.error("🧩 Detalles:", JSON.stringify(result.error?.details, null, 2));
 
-        await generarPDF({
-          ...payload.data,
-          id_acreditacion: idAcreditacion, // 👈 lo pasamos al backend este es el id del documento creado en el entry de acreditacion_competencia
-        });
-      } else {
-        console.log("📛 Detalle del error:", JSON.stringify(result.error, null, 2));
+        alert("❌ Error al guardar informe. Ver consola.");
+        setLoading(false);
         return;
-        // alert(`❌ Error: ${result.error?.message ?? "Ver consola"}`);
       }
 
+      const idAcreditacion = result.data.id;
+
+      // Generar PDF
+      const pdfRes = await generarPDF({
+        ...payload.data,
+        id_acreditacion: idAcreditacion,
+      });
+
+      if (pdfRes?.archivo?.id) {
+        const archivoId = pdfRes.archivo.id;
+        router.push(`/pdf-generated/${archivoId}`);
+      } else {
+        alert("❌ No se pudo generar correctamente el PDF.");
+      }
 
     } catch (error) {
-      console.error("🚨 Error general al enviar:", error);
-      alert("🚨 Error general. Ver consola.");
+      console.error("🚨 Error general en submitForm:", error);
+      alert("🚨 Ocurrió un error al enviar. Ver consola.");
+    } finally {
+      setLoading(false);
     }
   };
+
 
   const steps = [
     {
@@ -216,17 +250,16 @@ export default function FormAcreditacionCompetencias() {
         />
       ),
     },
+    {
 
-    // {
-
-    //   title: "Acreditación",
-    //   component: (
-    //     <AcreditacionCompetenciasAcreditacionCompetencias
-    //       data={acreditacionData}
-    //       updateData={(value) => updateData(value, setAcreditacionData)}
-    //     />
-    //   ),
-    // },
+      title: "Acreditación",
+      component: (
+        <AcreditacionCompetenciasAcreditacionCompetencias
+          data={acreditacionData}
+          updateData={(value) => updateData(value, setAcreditacionData)}
+        />
+      ),
+    },
 
     // {
     //   title: "Procedimiento",
@@ -240,16 +273,11 @@ export default function FormAcreditacionCompetencias() {
     //     />
     //   ),
     // },
-
-
-
-
     // {
     //   title: "Hábitos",
     //   component: (
     //     <ComponenteRequerimientos
     //       key='habitos'
-
     //       title="Habitos Operacionales"
     //       data={habitosData}
     //       updateData={(value) => updateData(value, setHabitosData)}
@@ -282,11 +310,12 @@ export default function FormAcreditacionCompetencias() {
     //       fetchRequerimientos={getRequerimientosHabilitacion}
     //     />
     //   ),
-    // },
   ];
 
   return (
     <div className=" mx-auto p-4">
+      <LoadingOverlay isLoading={loading} />
+
       <div className="grid grid-cols-3 md:flex justify-between gap-4 mb-6">
         {steps.map((step, index) => (
           <div key={index} className="flex flex-col items-center flex-1">

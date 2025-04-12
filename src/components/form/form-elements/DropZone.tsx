@@ -1,33 +1,47 @@
 "use client";
+
 import React, { useState } from "react";
 import ComponentCard from "../../common/ComponentCard";
 import { useDropzone } from "react-dropzone";
 import { CheckLineIcon } from "@/icons";
 
-// 👇 Añadimos props
+// Props
 interface DropzoneProps {
   name: string;
   label: string;
-  defaultValue?: string;
+  defaultValue?: File | File[];
   onDrop: (files: File[]) => void;
 }
 
-const DropzoneComponent: React.FC<DropzoneProps> = ({ onDrop, name, label }) => {
-  const [files, setFiles] = useState<File[]>([]);
+const DropzoneComponent: React.FC<DropzoneProps> = ({ onDrop, name, label, defaultValue }) => {
+  const [files, setFiles] = useState<File[]>(() => {
+    if (!defaultValue) return [];
+    if (Array.isArray(defaultValue)) return defaultValue;
+    if (defaultValue instanceof File) return [defaultValue];
+    return [];
+  });
 
   const handleDrop = (acceptedFiles: File[]) => {
-    setFiles(prev => [...prev, ...acceptedFiles]);
-    console.log("Files dropped:", acceptedFiles);
-    onDrop(acceptedFiles); // 👈 Aquí llamas el callback del padre
+    const newFiles = [...files, ...acceptedFiles];
+    setFiles(newFiles);
+    onDrop(newFiles); // notificar al padre
   };
+
+
+  const deleteFiles = () => {
+    const newFiles: [] = [];
+    setFiles(newFiles);
+    onDrop(newFiles);
+  };
+
+
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: handleDrop,
+    multiple: true, // ✅ permite múltiples archivos
     accept: {
-      "image/png": [],
-      "image/jpeg": [],
-      "image/webp": [],
-      "image/svg+xml": [],
+      "image/*": [],
+      "application/pdf": []
     },
   });
 
@@ -42,7 +56,7 @@ const DropzoneComponent: React.FC<DropzoneProps> = ({ onDrop, name, label }) => 
             }`}
           id="demo-upload"
         >
-          <input {...getInputProps()} name={name} />
+          <input {...getInputProps({ capture: "environment" })} name={name} />
 
           <div className="dz-message flex flex-col items-center !m-0">
             <div className="mb-[22px] flex justify-center">
@@ -57,7 +71,6 @@ const DropzoneComponent: React.FC<DropzoneProps> = ({ onDrop, name, label }) => 
                     viewBox="0 0 29 28"
                     xmlns="http://www.w3.org/2000/svg"
                   >
-                    {/* Ícono de upload */}
                     <path
                       fillRule="evenodd"
                       clipRule="evenodd"
@@ -74,11 +87,15 @@ const DropzoneComponent: React.FC<DropzoneProps> = ({ onDrop, name, label }) => 
                   {files.length} archivo{files.length > 1 && "s"} cargado{files.length > 1 && "s"}.
                 </p>
                 <button
-                  onClick={() => setFiles([])}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    deleteFiles()
+                  }}
                   className="mb-6 text-sm text-red-500 underline hover:text-red-700"
                   type="button"
                 >
-                  Limpiar archivos
+                  Eliminar archivos
                 </button>
               </div>
             ) : (

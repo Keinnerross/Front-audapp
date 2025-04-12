@@ -10,6 +10,7 @@ import DefaultInputs from "@/components/form/form-elements/DefaultInputs";
 import Input from "@/components/form/input/InputField";
 import { CalenderIcon } from "@/icons";
 import MultiSelect from "@/components/form/MultiSelect";
+import LoadingOverlay from "@/components/common/loaderFullPage";
 
 // Tipo local para los datos de este paso
 export interface BaseInformeData {
@@ -47,10 +48,7 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
     fetchData();
   }, []);
 
-  const auditorOptions = auditores.map((auditor) => ({
-    value: String(auditor.documentId),
-    label: auditor.Nombre,
-  }));
+
 
 
   const empresaOptions = empresas.map((empresa) => ({
@@ -59,7 +57,7 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
   }));
 
 
-  const testoptions = auditores.map((auditor) => ({
+  const auditorOptions = auditores.map((auditor) => ({
     value: String(auditor.documentId),
     label: auditor.Nombre,
     text: auditor.Nombre,
@@ -70,6 +68,10 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
 
   return (
     <div id="form-acreditacion" className="p-6 space-y-10">
+
+
+
+
       <Section title="Base del Informe">
         {/* Nombre del informe */}
         <DefaultInputs
@@ -93,7 +95,7 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
               type="date"
               id="fecha"
               name="fecha"
-              value={data.fecha || ""}
+              defaultValue={data.fecha || ""}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 updateData({ fecha: e.target.value })
               }
@@ -108,9 +110,10 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
         {/* Es multiselección */}
         <MultiSelect
           label="Seleccionar Auditores"
-          options={testoptions}
+          options={auditorOptions}
           placeholder="Selecciona uno o más auditores"
           searchable={true}
+          defaultSelected={data.auditor || []}
           onChange={(value: string[]) => {
             updateData({ auditor: value })
           }
@@ -123,7 +126,7 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
           <Select
             options={empresaOptions}
             placeholder="Selecciona una empresa"
-            value={data.empresa || ""}
+            defaultValue={data.empresa || ""}
             onChange={(value: string) => updateData({ empresa: value })}
           />
         </div>

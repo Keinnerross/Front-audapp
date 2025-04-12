@@ -20,7 +20,7 @@ export interface AcreditacionData {
   evaluador: string;
   rut_evaluador: string;
   observaciones: string;
-  scan_documento: File | string | null;
+  scan_documento: File[] | null;
 }
 
 // Props esperados desde el componente padre
@@ -60,7 +60,7 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
             <Select
               options={auditorOptions}
               placeholder="Selecciona un auditor"
-              value={data.auditor}
+              defaultValue={data.auditor}
               onChange={(value: string) => updateData({ auditor: value })}
             />
           </div>
@@ -72,7 +72,7 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
                 type="date"
                 id="fecha_evaluacion"
                 name="fecha_evaluacion"
-                value={data.fecha_evaluacion}
+                defaultValue={data.fecha_evaluacion}
                 onChange={(e) => updateData({ fecha_evaluacion: e.target.value })}
               />
               <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">
@@ -129,10 +129,9 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
           <DropzoneComponent
             name="scan_documento"
             label="Scan Documento"
+            defaultValue={data.scan_documento || []}
             onDrop={(files: File[]) => {
-              if (files.length > 0) {
-                updateData({ scan_documento: files[0] });
-              }
+              updateData({ scan_documento: files });
             }}
           />
 

@@ -76,7 +76,8 @@ export const generarPDF = async (payload: any) => {
       }
   
       console.log("✅ PDF generado:", result);
-      alert("✅ PDF generado y subido con éxito");
+      // alert("✅ PDF generado y subido con éxito");
+      
       return result;
   
     } catch (error) {

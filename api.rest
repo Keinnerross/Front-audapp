@@ -49,3 +49,8 @@ Authorization: Bearer 103c2f2da7c5be8f797bd5fdf3755bb0a38cea55f18e49d387d1b903c4
     "requerimiento": []
   }
 }
+
+
+
+
+/api/upload/files/
