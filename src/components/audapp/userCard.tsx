@@ -4,12 +4,16 @@ import { useModal } from "../../hooks/useModal";
 import { Modal } from "../ui/modal";
 import Image from "next/image";
 import Link from "next/link";
-import { getAuditor, Auditor, getAuditorPicture, AuditorPic} from "@/lib/user"
+import { getAuditor, Auditor, getAuditorPicture, AuditorPic } from "@/lib/user"
+import { FaClipboardCheck, FaLock } from "react-icons/fa";
+import LoadingOverlay from "../common/loaderFullPage";
+
+
 
 export default function UserCard() {
   const { isOpen, openModal, closeModal } = useModal();
   const [auditor, setAuditor] = useState<Auditor | null>(null);
-  const [picture, setPicture] =useState<AuditorPic | null>(null);
+  const [picture, setPicture] = useState<AuditorPic | null>(null);
 
 
   useEffect(() => {
@@ -17,19 +21,12 @@ export default function UserCard() {
 
     const fetchData = async () => {
       try {
-        // Obtener el usuario del localStorage
         const userStorage = localStorage.getItem("user");
-
         if (userStorage) {
           const usernameParse = userStorage?.replace(/['"]+/g, '');
           const auditorData = await getAuditor(usernameParse);
-          console.log(usernameParse)
-
           setAuditor(auditorData);
-
-
           const foto = await getAuditorPicture(usernameParse);
-
           setPicture(foto)
 
 
@@ -51,6 +48,9 @@ export default function UserCard() {
 
   return (
     <>
+
+      <LoadingOverlay isWhite={true} isLoading={!picture} />
+
       <div className="p-5 border border-gray-200 rounded-2xl dark:border-gray-800 lg:p-6">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
           <div className="flex flex-col items-center  gap-6 xl:flex-row">
@@ -69,9 +69,7 @@ export default function UserCard() {
               </h4>
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 {auditor?.cargo || ""}
-
               </p>
-
             </div>
 
           </div>
@@ -98,63 +96,45 @@ export default function UserCard() {
           </button>
         </div>
       </div>
-      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-[700px] m-4">
-        <div className="no-scrollbar relative w-full max-w-[700px] overflow-y-auto rounded-3xl bg-white p-4 dark:bg-gray-900 lg:p-11">
-          <div className="px-2 pr-14">
-            <h4 className="mb-2 text-2xl font-semibold text-gray-800 dark:text-white/90">
-              Seleccione el tipo de auditoría
-            </h4>
+
+
+
+      <Modal isOpen={isOpen} onClose={closeModal} className="max-w-md w-full mx-4">
+        <div className="relative w-full max-w-md overflow-hidden rounded-2xl bg-white dark:bg-gray-900 shadow-xl">
+          <div className="p-6 space-y-6">
+            <div>
+              <h2 className="text-xl font-bold text-gray-800 dark:text-white/90">
+                Seleccione el tipo de auditoría
+              </h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Elige una opción para comenzar tu informe.
+              </p>
+            </div>
+
+            {/* Opciones */}
+            <div className="grid grid-cols-1 gap-4">
+              <Link
+                href="/acreditacion-competencias"
+                className="flex items-center gap-3 rounded-xl border border-brand-100 bg-brand-50 px-4 py-4 text-brand-700 hover:bg-brand-100 transition dark:border-brand-900 dark:bg-brand-950 dark:text-brand-300"
+              >
+                <FaClipboardCheck className="text-xl text-brand-600" />
+                <span className="font-medium text-base">Acreditación de competencias</span>
+              </Link>
+
+              {[...Array(5)].map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-3 rounded-xl border border-gray-200 bg-gray-50 px-4 py-4 text-gray-400 dark:border-gray-700 dark:bg-gray-800"
+                >
+                  <FaLock className="text-xl" />
+                  <span className="font-medium text-base">Próximamente</span>
+                </div>
+              ))}
+            </div>
           </div>
-
-          <div className="grid grid-cols-2 gap-4 auto-rows-fr">
-            <Link
-              href="/acreditacion-competencias"
-              className="bg-brand-200 w-full h-full rounded-xl text-center flex flex-col items-center justify-center py-10"
-            >
-              <p>icon</p>
-              <p>Acreditación de competencias</p>
-            </Link>
-            <Link
-              href=""
-              className="bg-gray-200 w-full h-full rounded-xl text-center flex flex-col items-center justify-center py-10"
-            >
-              <p className="text-gray-700">proximamente</p>
-
-
-            </Link>
-            <Link
-              href=""
-              className="bg-gray-200 w-full h-full rounded-xl text-center flex flex-col items-center justify-center py-10"
-            >
-              <p className="text-gray-700">proximamente</p>
-            </Link>
-            <Link
-              href=""
-              className="bg-gray-200 w-full h-full rounded-xl text-center flex flex-col items-center justify-center py-10"
-            >
-              <p className="text-gray-700">proximamente</p>
-
-            </Link>
-            <Link
-              href=""
-              className="bg-gray-200 w-full h-full rounded-xl text-center flex flex-col items-center justify-center py-10"
-            >
-              <p className="text-gray-700">proximamente</p>
-
-            </Link>
-            <Link
-              href=""
-              className="bg-gray-200 w-full h-full rounded-xl text-center flex flex-col items-center justify-center py-10"
-            >
-              <p className="text-gray-700">proximamente</p>
-
-            </Link>
-          </div>
-
-
-
         </div>
       </Modal>
+
     </>
   );
 }

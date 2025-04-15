@@ -87,11 +87,7 @@ export default function ComponenteRequerimientos({ title, data, updateData, fetc
                                     label="Comentario"
                                     value={data.requerimientos[index]?.comentario ?? ""}
                                     onImprove={async (text) => {
-
                                         const textoMejorado: string = await mejorarComentarioIA(text)
-
-                                        console.log("Texto mejorado:", textoMejorado)
-                                        // Simulación
                                         return textoMejorado;
                                     }}
                                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
@@ -104,9 +100,8 @@ export default function ComponenteRequerimientos({ title, data, updateData, fetc
                                     label="Recomendación"
                                     value={data.requerimientos[index]?.recomendacion ?? ""}
                                     onImprove={async (text) => {
-
-                                        // Simulación
-                                        return text + " (mejorado ✨)";
+                                        const textoMejorado: string = await mejorarComentarioIA(text)
+                                        return textoMejorado;
                                     }}
                                     onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                                         updateRequerimiento(index, { recomendacion: e.target.value })
@@ -141,8 +136,8 @@ export default function ComponenteRequerimientos({ title, data, updateData, fetc
                         label="Observaciones"
                         value={data.observaciones_resumen ? data.observaciones_resumen : ''}
                         onImprove={async (text) => {
-                            // Simulación
-                            return text + " (mejorado ✨)";
+                            const textoMejorado: string = await mejorarComentarioIA(text)
+                            return textoMejorado;
                         }}
                         onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
                             updateData({ observaciones_resumen: e.target.value })

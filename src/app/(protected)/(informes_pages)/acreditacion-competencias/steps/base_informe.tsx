@@ -35,7 +35,6 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
     const fetchData = async () => {
       try {
         const resAuditores = await getAuditores();
-        console.log(resAuditores)
         setAuditores(resAuditores);
 
         const resEmpresas = await getEmpresas();

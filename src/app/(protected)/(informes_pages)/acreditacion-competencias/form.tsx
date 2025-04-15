@@ -52,7 +52,17 @@ export default function FormAcreditacionCompetencias() {
   const router = useRouter();
 
 
-  const next = () => currentStep < steps.length - 1 && setCurrentStep((prev) => prev + 1);
+  const next = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep((prev) => prev + 1);
+
+      // Hacer scroll al top con suavidad
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth",
+      });
+    }
+  };
   const back = () => currentStep > 0 && setCurrentStep((prev) => prev - 1);
 
   const updateData = (value: any, setstate: any) => {
@@ -95,7 +105,6 @@ export default function FormAcreditacionCompetencias() {
           archivoIds = uploads.filter(Boolean);
         }
 
-        console.log(archivoIds);
         return {
           nombre_requerimiento: item.nombre_requerimiento,
           calificacion: item.calificacion?.toLowerCase() || null,
@@ -212,7 +221,6 @@ export default function FormAcreditacionCompetencias() {
         console.error("🧩 Detalles:", JSON.stringify(result.error?.details, null, 2));
 
         alert("❌ Error al guardar informe. Ver consola.");
-        setLoading(false);
         return;
       }
 
@@ -250,16 +258,7 @@ export default function FormAcreditacionCompetencias() {
         />
       ),
     },
-    // {
 
-    //   title: "Acreditación",
-    //   component: (
-    //     <AcreditacionCompetenciasAcreditacionCompetencias
-    //       data={acreditacionData}
-    //       updateData={(value) => updateData(value, setAcreditacionData)}
-    //     />
-    //   ),
-    // },
 
     {
       title: "Procedimiento",
@@ -286,30 +285,42 @@ export default function FormAcreditacionCompetencias() {
       ),
     },
 
-    // {
-    //   title: "Gestión",
-    //   component: (
-    //     <ComponenteRequerimientos
-    //       key="gestion"
-    //       title="Gestión de control"
-    //       data={gestionData}
-    //       updateData={(value) => updateData(value, setGestionData)}
-    //       fetchRequerimientos={getRequerimientosGestionDeControl}
+    {
+      title: "Gestión",
+      component: (
+        <ComponenteRequerimientos
+          key="gestion"
+          title="Gestión de control"
+          data={gestionData}
+          updateData={(value) => updateData(value, setGestionData)}
+          fetchRequerimientos={getRequerimientosGestionDeControl}
 
-    //     />
-    //   ),
-    // },
-    // {
-    //   title: "Habilitación",
-    //   component: (
-    //     <ComponenteRequerimientos
-    //       key="habilitacion"
-    //       title="Habilitación"
-    //       data={habilitacionData}
-    //       updateData={(value) => updateData(value, setHabilitacionData)}
-    //       fetchRequerimientos={getRequerimientosHabilitacion}
-    //     />
-    //   ),
+        />
+      ),
+    },
+    {
+      title: "Habilitación",
+      component: (
+        <ComponenteRequerimientos
+          key="habilitacion"
+          title="Habilitación"
+          data={habilitacionData}
+          updateData={(value) => updateData(value, setHabilitacionData)}
+          fetchRequerimientos={getRequerimientosHabilitacion}
+        />
+
+      ),
+    },
+    {
+
+      title: "Acreditación",
+      component: (
+        <AcreditacionCompetenciasAcreditacionCompetencias
+          data={acreditacionData}
+          updateData={(value) => updateData(value, setAcreditacionData)}
+        />
+      ),
+    },
   ];
 
   return (
@@ -324,7 +335,7 @@ export default function FormAcreditacionCompetencias() {
             >
               {index + 1}
             </div>
-            <span className="text-[10px] md:text-xs text-center mt-1">{step.title}</span>
+            <span className="text-[10px] md:text-xs text-center mt-1 text-gray-700 dark:text-gray-400">{step.title}</span>
           </div>
         ))}
       </div>
