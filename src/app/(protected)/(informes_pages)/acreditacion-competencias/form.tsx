@@ -8,6 +8,7 @@ import ComponenteRequerimientos, { ComponenteData } from "@/components/audapp/co
 import { getRequerimientosHabitosOperacionales, getRequerimientosGestionDeControl, getRequerimientosHabilitacion, getRequerimientosProcedimientoGeneral, generarPDF } from "@/lib/informe _acreditación";
 import LoadingOverlay from "@/components/common/loaderFullPage";
 import { useRouter } from "next/navigation";
+import HabitosAcreditacionCompetencias from "./steps/habitos_operacionales";
 
 
 
@@ -249,70 +250,16 @@ export default function FormAcreditacionCompetencias() {
 
 
   const steps = [
+    // {
+    //   title: "Base",
+    //   component: (
+    //     <BaseInformeAcreditacionCompetencias
+    //       data={baseData}
+    //       updateData={(value) => updateData(value, setBaseData)}
+    //     />
+    //   ),
+    // },
     {
-      title: "Base",
-      component: (
-        <BaseInformeAcreditacionCompetencias
-          data={baseData}
-          updateData={(value) => updateData(value, setBaseData)}
-        />
-      ),
-    },
-
-
-    {
-      title: "Procedimiento",
-      component: (
-        <ComponenteRequerimientos
-          key='procedimiento'
-          title="Procedimiento General"
-          data={procedimientoData}
-          updateData={(value) => updateData(value, setProcedimientoData)}
-          fetchRequerimientos={getRequerimientosProcedimientoGeneral}
-        />
-      ),
-    },
-    {
-      title: "Hábitos",
-      component: (
-        <ComponenteRequerimientos
-          key='habitos'
-          title="Habitos Operacionales"
-          data={habitosData}
-          updateData={(value) => updateData(value, setHabitosData)}
-          fetchRequerimientos={getRequerimientosHabitosOperacionales}
-        />
-      ),
-    },
-
-    {
-      title: "Gestión",
-      component: (
-        <ComponenteRequerimientos
-          key="gestion"
-          title="Gestión de control"
-          data={gestionData}
-          updateData={(value) => updateData(value, setGestionData)}
-          fetchRequerimientos={getRequerimientosGestionDeControl}
-
-        />
-      ),
-    },
-    {
-      title: "Habilitación",
-      component: (
-        <ComponenteRequerimientos
-          key="habilitacion"
-          title="Habilitación"
-          data={habilitacionData}
-          updateData={(value) => updateData(value, setHabilitacionData)}
-          fetchRequerimientos={getRequerimientosHabilitacion}
-        />
-
-      ),
-    },
-    {
-
       title: "Acreditación",
       component: (
         <AcreditacionCompetenciasAcreditacionCompetencias
@@ -321,6 +268,66 @@ export default function FormAcreditacionCompetencias() {
         />
       ),
     },
+    {
+      title: "Hábitos",
+      component: (
+        <HabitosAcreditacionCompetencias
+          data={habitosData}
+          updateData={(value) => updateData(value, setAcreditacionData)}
+        />
+      ),
+    },
+
+    
+    // {
+    //   title: "Habilitación",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key="habilitacion"
+    //       title="Habilitación"
+    //       data={habilitacionData}
+    //       updateData={(value) => updateData(value, setHabilitacionData)}
+    //       fetchRequerimientos={getRequerimientosHabilitacion}
+    //     />
+    //   ),
+    // },
+    // {
+    //   title: "Procedimiento",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key='procedimiento'
+    //       title="Procedimiento General"
+    //       data={procedimientoData}
+    //       updateData={(value) => updateData(value, setProcedimientoData)}
+    //       fetchRequerimientos={getRequerimientosProcedimientoGeneral}
+    //     />
+    //   ),
+    // },
+    // {
+    //   title: "Gestión",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key="gestion"
+    //       title="Gestión de control"
+    //       data={gestionData}
+    //       updateData={(value) => updateData(value, setGestionData)}
+    //       fetchRequerimientos={getRequerimientosGestionDeControl}
+
+    //     />
+    //   ),
+    // },
+    // {
+    //   title: "Hábitos",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key='habitos'
+    //       title="Habitos Operacionales"
+    //       data={habitosData}
+    //       updateData={(value) => updateData(value, setHabitosData)}
+    //       fetchRequerimientos={getRequerimientosHabitosOperacionales}
+    //     />
+    //   ),
+    // },
   ];
 
   return (

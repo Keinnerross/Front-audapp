@@ -28,12 +28,12 @@ export const getRequerimientosProcedimientoGeneral = async () => {
     return data;    
 };
 
-
-export const getRequerimientosHabitosOperacionales = async () => {
-    const response = await getQuery<{ data: Requerimiento[] }>(urlHabitosOperacionales);
-    const data = response.data.data.habitos_operacionales.requerimiento;
-    return data;    
-};
+//Ya no se usa pq la data cambió, es decir este componente ya no usa requerimientos.
+// export const getRequerimientosHabitosOperacionales = async () => {
+//     const response = await getQuery<{ data: Requerimiento[] }>(urlHabitosOperacionales);
+//     const data = response.data.data.habitos_operacionales.requerimiento;
+//     return data;    
+// };
 
 
 export const getRequerimientosGestionDeControl = async () => {

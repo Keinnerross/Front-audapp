@@ -11,7 +11,7 @@ interface Props {
   updateData: (index: number, value: Partial<AcreditacionData>) => void;
 }
 
-export default function AcreditacionCompetenciasAcreditacionCompetencias({ data, updateData }: Props) {
+export default function HabitosAcreditacionCompetencias({ data, updateData }: Props) {
   const [operadores, setOperadores] = useState<AcreditacionData[]>(
     Array.isArray(data) ? data : [data]
   );
