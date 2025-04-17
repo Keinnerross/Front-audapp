@@ -2,17 +2,18 @@
 
 import { useState } from "react";
 import BaseInformeAcreditacionCompetencias, { BaseInformeData } from "./steps/base_informe";
-import AcreditacionCompetenciasAcreditacionCompetencias, { AcreditacionData } from "./steps/acreditacion_competencias";
+import AcreditacionCompetenciasAcreditacionCompetencias from "./steps/acreditacion_competencias";
 import Button from "@/components/ui/button/Button";
 import ComponenteRequerimientos, { ComponenteData } from "@/components/audapp/componenteRequerimientos";
 import { getRequerimientosHabitosOperacionales, getRequerimientosGestionDeControl, getRequerimientosHabilitacion, getRequerimientosProcedimientoGeneral, generarPDF } from "@/lib/informe _acreditación";
 import LoadingOverlay from "@/components/common/loaderFullPage";
 import { useRouter } from "next/navigation";
 import HabitosAcreditacionCompetencias from "./steps/habitos_operacionales";
+import { crearOperador } from "@/lib/operadores";
+import { HabitosData } from "@/components/audapp/acreditacion-competencias/habitosOperacionalesComponente";
+import { AcreditacionData } from "@/components/audapp/acreditacion-competencias/acreditacionCompetenciasComponent";
 
-
-
-
+//Informacion con la que se inicializa cada form:
 const initialBase: BaseInformeData = {
   nombre_informe: "",
   fecha: "",
@@ -20,15 +21,11 @@ const initialBase: BaseInformeData = {
   empresa: "",
 };
 
-const initialAcreditacion: AcreditacionData = {
-  auditor: "",
-  fecha_evaluacion: "",
-  evaluacion_teorica: "",
-  evaluacion_practica: "",
-  evaluador: "",
-  rut_evaluador: "",
-  observaciones: "",
-  scan_documento: null,
+const initialAcreditacion: { acreditacion_single: AcreditacionData[] } = {
+  acreditacion_single: [{}]
+};
+const initialHabitos: { habitos_single: HabitosData[] } = {
+  habitos_single: [{}] //este nombre es solo en el front.
 };
 
 const initialConRequerimientos: ComponenteData = {
@@ -44,7 +41,7 @@ export default function FormAcreditacionCompetencias() {
   const [baseData, setBaseData] = useState(initialBase);
   const [acreditacionData, setAcreditacionData] = useState(initialAcreditacion);
   const [procedimientoData, setProcedimientoData] = useState(initialConRequerimientos);
-  const [habitosData, setHabitosData] = useState(initialConRequerimientos);
+  const [habitosData, setHabitosData] = useState(initialHabitos);
   const [gestionData, setGestionData] = useState(initialConRequerimientos);
   const [habilitacionData, setHabilitacionData] = useState(initialConRequerimientos);
   const [loading, setLoading] = useState(false);
@@ -72,6 +69,8 @@ export default function FormAcreditacionCompetencias() {
 
   const token = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
 
+
+  //Funcion que sube los archivos a strapi y retorna el ID del archivo subido.
   const uploadFile = async (file: File): Promise<number | null> => {
     const formData = new FormData();
     formData.append("files", file);
@@ -89,6 +88,11 @@ export default function FormAcreditacionCompetencias() {
     }
   };
 
+
+
+  //Esta funcion remplaza los archivos de los requerimientos por los IDs de los archivos subidos a strapi.
+  //Recibe un array de requerimientos y devuelve un array de requerimientos con los IDs de los archivos subidos a strapi.
+  //Hace uso de la funcion UpdateFile para subir los archivos a strapi y obtener el ID del archivo subido.
   const replaceArchivos = async (requerimientos: any[]): Promise<any[]> => {
     return await Promise.all(
       requerimientos.map(async (item) => {
@@ -119,28 +123,68 @@ export default function FormAcreditacionCompetencias() {
 
 
 
-  const uploadAllEvidence = async () => {
+  const replaceArchivosAcreditacion = async (
+    acreditacionSingle: any[],
+    operadorIds: string[] // o number[], según uses
+  ): Promise<any[]> => {
+    return await Promise.all(
+      acreditacionSingle.map(async (item, i) => {
+        let archivoIds: number[] = [];
 
-    const scanIds = Array.isArray(acreditacionData.scan_documento)
-      ? await Promise.all(
-        acreditacionData.scan_documento.map(async (file: File) =>
-          file instanceof File ? await uploadFile(file) : file
-        )
-      )
-      : [];
+        if (Array.isArray(item.scan_documento)) {
+          const uploads = await Promise.all(
+            item.scan_documento.map(async (file: File) => {
+              if (file instanceof File) return await uploadFile(file);
+              return file; // ya es ID
+            })
+          );
+          archivoIds = uploads.filter(Boolean);
+        }
 
+        return {
+          operador: operadorIds[i], // 👈 
+          fecha_evaluacion: item.fecha_evaluacion,
+          fecha_evaluacion_teorica: item.evaluacion_teorica,
+          fecha_evaluacion_practica: item.evaluacion_practica,
+          evaluador: item.evaluador,
+          rut_evaluador: item.rut_evaluador,
+          observaciones: item.observaciones,
+          scan_documento: archivoIds, // 👈
+        };
+      })
+    ).then(items => items.filter(Boolean));
+  };
+
+
+  const replaceDataHabitos = async (habitosSingle: any[], operadores: string[]) => {
+
+    return habitosSingle.map((item, i) => ({
+      operador: operadores[i],
+      fecha_acreditacion: item.fecha_acreditacion,
+      fecha_vigencia_licencia_interna: item.fecha_vigencia_licencia_interna,
+      resultado: item.resultado,
+      habitos_operacionales_realizados: item.habitos_operacionales_realizados,
+      situacion_actual: item.situacion_actual,
+      conclusion_recomendacion: item.conclusion_recomendacion
+    }))
+  }
+
+
+
+  //Hace uso de la funcion de remplazar los files por las Ids previamente subidas a strapi.
+  const dataWithMediaUpdate = async (resOperadorDocIdsAcreditacion: string[], resOperadorDocIdsHabitos: string[]) => {
+    // Retorna la data con los los ids de los archivos subidos a strapi.
     return {
       acreditacion: {
-        ...acreditacionData,
-        scan_documento: scanIds,
+        acreditacion_single: await replaceArchivosAcreditacion(acreditacionData.acreditacion_single, resOperadorDocIdsAcreditacion),
+      },
+
+      habitos: {
+        habitos_single: await replaceDataHabitos(habitosData.habitos_single, resOperadorDocIdsHabitos),
       },
       procedimiento: {
         ...procedimientoData,
         requerimientos: await replaceArchivos(procedimientoData.requerimientos),
-      },
-      habitos: {
-        ...habitosData,
-        requerimientos: await replaceArchivos(habitosData.requerimientos),
       },
 
       gestion: {
@@ -154,16 +198,32 @@ export default function FormAcreditacionCompetencias() {
     };
   };
 
+
+
   const submitForm = async () => {
     // o usa este hook dentro del componente si aún no está
-
-    console.log(acreditacionData)
-
     try {
       setLoading(true); // ⏳ Inicia loading
 
-      const evidencias = await uploadAllEvidence();
+      //#1
+      //Se suben los operadores a la base de datos de strapi retornando los Ids para sociarlos al playLoad del informe.
+      //Se envía de igua forma el valor de la empresa para poder asociarlo, la funcion se encarga de gestionar la logica del POST.
+      const resOperadorDocIdsAcreditacion = await crearOperador(acreditacionData.acreditacion_single, baseData.empresa); //Se obtienen las Ids de los Operadores asociados a Acreditacion
+      const resOperadorDocIdsHabitos = await crearOperador(habitosData.habitos_single, baseData.empresa); // Se obtienen las Ids de los operadores asociados a Habitos
 
+
+
+
+      //#2
+      //Se suben todos los archivos e imagenes de los formularios
+      //Esta funcion tiene dentro otras funciones que se sencargan de la subida y de organzar la informacion.
+      //Al final retorna cada una de la informacion formateada, es decir en los campos "archivos ó media" se encuentran los IDs de los archivos subidos a strapi.
+      //Se guarda en una variable la data formateada para ser usada en el playload.
+      const dataFormated = await dataWithMediaUpdate(resOperadorDocIdsAcreditacion, resOperadorDocIdsHabitos);
+
+
+
+      // #3 Preparamos el playload.
       const payload = {
         data: {
           base_informe: {
@@ -173,39 +233,41 @@ export default function FormAcreditacionCompetencias() {
             empresa: baseData.empresa || null,
           },
           procedimiento_general: {
-            calificacion: evidencias.procedimiento.calificacion_resumen?.toLowerCase() || null,
-            observaciones: evidencias.procedimiento.observaciones_resumen,
-            requerimiento: evidencias.procedimiento.requerimientos,
+            calificacion: dataFormated.procedimiento.calificacion_resumen?.toLowerCase() || null,
+            observaciones: dataFormated.procedimiento.observaciones_resumen,
+            requerimiento: dataFormated.procedimiento.requerimientos,
           },
-          habitos_operacionales: {
-            calificacion: evidencias.habitos.calificacion_resumen?.toLowerCase() || null,
-            observaciones: evidencias.habitos.observaciones_resumen,
-            requerimiento: evidencias.habitos.requerimientos,
-          },
+
           gestion_de_control: {
-            calificacion: evidencias.gestion.calificacion_resumen?.toLowerCase() || null,
-            observaciones: evidencias.gestion.observaciones_resumen,
-            requerimiento: evidencias.gestion.requerimientos,
+            calificacion: dataFormated.gestion.calificacion_resumen?.toLowerCase() || null,
+            observaciones: dataFormated.gestion.observaciones_resumen,
+            requerimiento: dataFormated.gestion.requerimientos,
           },
           habilitacion: {
-            calificacion: evidencias.habilitacion.calificacion_resumen?.toLowerCase() || null,
-            observaciones: evidencias.habilitacion.observaciones_resumen,
-            requerimiento: evidencias.habilitacion.requerimientos,
+            calificacion: dataFormated.habilitacion.calificacion_resumen?.toLowerCase() || null,
+            observaciones: dataFormated.habilitacion.observaciones_resumen,
+            requerimiento: dataFormated.habilitacion.requerimientos,
           },
-          nombre_auditor: acreditacionData.auditor,
-          fecha_evaluacion: acreditacionData.fecha_evaluacion || null,
-          evaluacion_teorica: acreditacionData.evaluacion_teorica,
-          evaluacion_practica: acreditacionData.evaluacion_practica,
-          evaluador: acreditacionData.evaluador,
-          rut_evaluador: acreditacionData.rut_evaluador,
-          observacion: acreditacionData.observaciones,
-          scan_documento: evidencias.acreditacion.scan_documento
-            ? evidencias.acreditacion.scan_documento
-            : [],
-        },
+          acreditacion_competencias:
+            dataFormated.acreditacion.acreditacion_single.map((item) => ({
+              __component: "informe-acreditacion.acreditacion-competencias",
+              ...item,
+            })),
+
+          habitos_operacionales:
+            dataFormated.habitos.habitos_single.map((item) => ({
+              __component: "informe-acreditacion.habitos-operacionales",
+              ...item,
+            }))
+        }
       };
 
-      // Crear entrada en Strapi
+
+
+
+
+
+      // Crear entrada en Strapi POST FUNCTION
       const res = await fetch(`${process.env.NEXT_PUBLIC_STRAPI_HOST}/api/informes-acreditacion-de-competencias`, {
         method: "POST",
         headers: {
@@ -223,7 +285,7 @@ export default function FormAcreditacionCompetencias() {
 
         alert("❌ Error al guardar informe. Ver consola.");
         return;
-      }
+      } 
 
       const idAcreditacion = result.data.id;
 
@@ -250,15 +312,15 @@ export default function FormAcreditacionCompetencias() {
 
 
   const steps = [
-    // {
-    //   title: "Base",
-    //   component: (
-    //     <BaseInformeAcreditacionCompetencias
-    //       data={baseData}
-    //       updateData={(value) => updateData(value, setBaseData)}
-    //     />
-    //   ),
-    // },
+    {
+      title: "Base",
+      component: (
+        <BaseInformeAcreditacionCompetencias
+          data={baseData}
+          updateData={(value) => updateData(value, setBaseData)}
+        />
+      ),
+    },
     {
       title: "Acreditación",
       component: (
@@ -273,61 +335,50 @@ export default function FormAcreditacionCompetencias() {
       component: (
         <HabitosAcreditacionCompetencias
           data={habitosData}
-          updateData={(value) => updateData(value, setAcreditacionData)}
+          updateData={(value) => updateData(value, setHabitosData)}
         />
       ),
     },
 
-    
-    // {
-    //   title: "Habilitación",
-    //   component: (
-    //     <ComponenteRequerimientos
-    //       key="habilitacion"
-    //       title="Habilitación"
-    //       data={habilitacionData}
-    //       updateData={(value) => updateData(value, setHabilitacionData)}
-    //       fetchRequerimientos={getRequerimientosHabilitacion}
-    //     />
-    //   ),
-    // },
-    // {
-    //   title: "Procedimiento",
-    //   component: (
-    //     <ComponenteRequerimientos
-    //       key='procedimiento'
-    //       title="Procedimiento General"
-    //       data={procedimientoData}
-    //       updateData={(value) => updateData(value, setProcedimientoData)}
-    //       fetchRequerimientos={getRequerimientosProcedimientoGeneral}
-    //     />
-    //   ),
-    // },
-    // {
-    //   title: "Gestión",
-    //   component: (
-    //     <ComponenteRequerimientos
-    //       key="gestion"
-    //       title="Gestión de control"
-    //       data={gestionData}
-    //       updateData={(value) => updateData(value, setGestionData)}
-    //       fetchRequerimientos={getRequerimientosGestionDeControl}
 
-    //     />
-    //   ),
-    // },
-    // {
-    //   title: "Hábitos",
-    //   component: (
-    //     <ComponenteRequerimientos
-    //       key='habitos'
-    //       title="Habitos Operacionales"
-    //       data={habitosData}
-    //       updateData={(value) => updateData(value, setHabitosData)}
-    //       fetchRequerimientos={getRequerimientosHabitosOperacionales}
-    //     />
-    //   ),
-    // },
+    {
+      title: "Habilitación",
+      component: (
+        <ComponenteRequerimientos
+          key="habilitacion"
+          title="Habilitación"
+          data={habilitacionData}
+          updateData={(value) => updateData(value, setHabilitacionData)}
+          fetchRequerimientos={getRequerimientosHabilitacion}
+        />
+      ),
+    },
+    {
+      title: "Procedimiento",
+      component: (
+        <ComponenteRequerimientos
+          key='procedimiento'
+          title="Procedimiento General"
+          data={procedimientoData}
+          updateData={(value) => updateData(value, setProcedimientoData)}
+          fetchRequerimientos={getRequerimientosProcedimientoGeneral}
+        />
+      ),
+    },
+    {
+      title: "Gestión",
+      component: (
+        <ComponenteRequerimientos
+          key="gestion"
+          title="Gestión de control"
+          data={gestionData}
+          updateData={(value) => updateData(value, setGestionData)}
+          fetchRequerimientos={getRequerimientosGestionDeControl}
+
+        />
+      ),
+    },
+
   ];
 
   return (
