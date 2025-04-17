@@ -56,7 +56,8 @@ export default function AcreditacionCompetenciasAcreditacionCompetencias({ data,
     const actualizados = data.acreditacion_single.map((op, i) =>
       i === index ? { ...op, ...value } : op
     );
-    updateData({ acreditacion_single: actualizados });
+
+      updateData({ acreditacion_single: actualizados });
   };
 
   return (
