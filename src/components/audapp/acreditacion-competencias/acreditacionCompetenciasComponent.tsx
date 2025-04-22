@@ -9,6 +9,8 @@ import Input from "@/components/form/input/InputField";
 import { CalenderIcon } from "@/icons";
 import DefaultInputs from "@/components/form/form-elements/DefaultInputs";
 import { formatDate, formatDateLargo } from "@/utils/formatDate"; // Asegúrate de tener esta función en utils
+import CrearBuscarOperador from "@/components/form/audapp/crearBuscarOperador";
+import { fetchOperadoresPorEmpresaDocumentId } from "@/lib/operadores";
 
 // 💡 Tipo para este paso del formulario
 export interface AcreditacionData {
@@ -25,15 +27,19 @@ export interface AcreditacionData {
 
 // Props esperados desde el componente padre
 interface Props {
+  empresaDocumentId: string;
   data: AcreditacionData;
   updateData: (value: Partial<AcreditacionData>) => void;
 }
 
 
-export default function AcreditacionCompetenciasComponent({ data, updateData }: Props) {
+export default function AcreditacionCompetenciasComponent({ data, updateData, empresaDocumentId }: Props) {
   return (
     <div className="pb-10">
       <div className="flex flex-col gap-6">
+
+        {/* Faltaria integrar la posibilidad de elegir el operador desde el back */}
+
         <DefaultInputs
           name="nombre_operador"
           label="Nombre operador"
@@ -48,7 +54,7 @@ export default function AcreditacionCompetenciasComponent({ data, updateData }: 
         />
 
         {/* Fecha Evaluación */}
-        <div className="relative">
+        {/* <div className="relative">
           <Label htmlFor="fecha_evaluacion">Fecha Evaluación</Label>
           <div className="relative">
             <Input
@@ -64,7 +70,7 @@ export default function AcreditacionCompetenciasComponent({ data, updateData }: 
               <CalenderIcon />
             </span>
           </div>
-        </div>
+        </div> */}
 
         {/* Evaluación Práctica */}
         <div className="relative">

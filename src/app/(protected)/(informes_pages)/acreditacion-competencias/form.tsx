@@ -50,11 +50,122 @@ export default function FormAcreditacionCompetencias() {
   const router = useRouter();
 
 
+  // Agrega esta interfaz al inicio del archivo
+  interface ValidationResult {
+    isValid: boolean;
+    errorMessage?: string;
+  }
+
+  // Luego define las funciones de validación para cada paso
+  const validateSteps = {
+    base: (data: BaseInformeData): ValidationResult => {
+      if (!data.nombre_informe.trim()) {
+        return { isValid: false, errorMessage: "El nombre del informe es requerido" };
+      }
+      if (!data.fecha) {
+        return { isValid: false, errorMessage: "La fecha es requerida" };
+      }
+      if (data.auditor.length === 0) {
+        return { isValid: false, errorMessage: "Debe seleccionar al menos un auditor" };
+      }
+      if (!data.empresa) {
+        return { isValid: false, errorMessage: "La empresa es requerida" };
+      }
+      return { isValid: true };
+    },
+    acreditacion: (data: { acreditacion_single: AcreditacionData[] }): ValidationResult => {
+      for (const item of data.acreditacion_single) {
+        if (!item.rut_operador?.trim()) {
+          return { isValid: false, errorMessage: "El RUT del operador es requerido" };
+        }
+        if (!item.evaluacion_practica) {
+          return { isValid: false, errorMessage: "La fecha de evaluación práctica es requerida" };
+        }
+        if (!item.evaluacion_teorica) {
+          return { isValid: false, errorMessage: "La fecha de evaluación teórica es requerida" };
+        }
+        if (!item.evaluador?.trim()) {
+          return { isValid: false, errorMessage: "El nombre del evaluador es requerido" };
+        }
+        if (!item.rut_evaluador?.trim()) {
+          return { isValid: false, errorMessage: "El RUT del evaluador es requerido" };
+        }
+      }
+      return { isValid: true };
+    },
+    habitos: (data: { habitos_single: HabitosData[] }): ValidationResult => {
+      for (const item of data.habitos_single) {
+        if (!item.rut_operador?.trim()) {
+          return { isValid: false, errorMessage: "Faltan campos por completar" };
+        }
+        if (!item.fecha_acreditacion) {
+          return { isValid: false, errorMessage: "Faltan campos por completar" };
+        }
+      }
+      return { isValid: true };
+    },
+    habilitacion: (data: ComponenteData): ValidationResult => {
+      if (data.requerimientos.length === 0) {
+        return { isValid: false, errorMessage: "Faltan requerimientos por evaluar" };
+      }
+      if (data.calificacion_resumen === "") {
+        return { isValid: false, errorMessage: "La calificación general de la sección es requerida" };
+      }
+      return { isValid: true };
+    },
+    procedimiento: (data: ComponenteData): ValidationResult => {
+      if (data.requerimientos.length === 0) {
+        return { isValid: false, errorMessage: "Faltan requerimientos por evaluar" };
+      }
+      if (data.calificacion_resumen === "") {
+        return { isValid: false, errorMessage: "La calificación general de la sección es requerida" };
+      }
+      return { isValid: true };
+    },
+    gestion: (data: ComponenteData): ValidationResult => {
+      if (data.requerimientos.length === 0) {
+        return { isValid: false, errorMessage: "Faltan requerimientos por evaluar" };
+      }
+      if (data.calificacion_resumen === "") {
+        return { isValid: false, errorMessage: "La calificación general de la sección es requerida" };
+      }
+      return { isValid: true };
+    }
+  };
+
+
   const next = () => {
+    // Validar el paso actual antes de avanzar
+    let validation: ValidationResult = { isValid: true };
+
+    switch (currentStep) {
+      case 0:
+        validation = validateSteps.base(baseData);
+        break;
+      case 1:
+        validation = validateSteps.acreditacion(acreditacionData);
+        break;
+      case 2:
+        validation = validateSteps.habitos(habitosData);
+        break;
+      case 3:
+        validation = validateSteps.habilitacion(habilitacionData);
+        break;
+      case 4:
+        validation = validateSteps.procedimiento(procedimientoData);
+        break;
+      case 5:
+        validation = validateSteps.gestion(gestionData);
+        break;
+    }
+
+    if (!validation.isValid) {
+      alert(validation.errorMessage || "Por favor complete todos los campos requeridos");
+      return;
+    }
+
     if (currentStep < steps.length - 1) {
       setCurrentStep((prev) => prev + 1);
-
-      // Hacer scroll al top con suavidad
       window.scrollTo({
         top: 0,
         behavior: "smooth",
@@ -68,20 +179,24 @@ export default function FormAcreditacionCompetencias() {
   }
 
   const token = process.env.NEXT_PUBLIC_STRAPI_TOKEN;
-
+  const host = process.env.NEXT_PUBLIC_STRAPI_HOST;
 
   //Funcion que sube los archivos a strapi y retorna el ID del archivo subido.
   const uploadFile = async (file: File): Promise<number | null> => {
     const formData = new FormData();
     formData.append("files", file);
+
     try {
-      const res = await fetch("http://localhost:1337/api/upload", {
+      const res = await fetch(`${host}/api/upload`, {
         method: "POST",
         body: formData,
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
+
       const data = await res.json();
-      return data[0]?.id ?? null;
+      return data?.[0]?.id ?? null;
     } catch (error) {
       console.error("❌ Error al subir archivo:", error);
       return null;
@@ -203,6 +318,25 @@ export default function FormAcreditacionCompetencias() {
 
 
   const submitForm = async () => {
+
+
+    const validations = [
+      validateSteps.base(baseData),
+      validateSteps.acreditacion(acreditacionData),
+      validateSteps.habitos(habitosData),
+      validateSteps.habilitacion(habilitacionData),
+      validateSteps.procedimiento(procedimientoData),
+      validateSteps.gestion(gestionData)
+    ];
+
+    const invalidStep = validations.findIndex(v => !v.isValid);
+    if (invalidStep !== -1) {
+      setCurrentStep(invalidStep); // Ir al paso con error
+      alert(validations[invalidStep].errorMessage || `Por favor complete todos los campos requeridos en el paso ${invalidStep + 1}`);
+      return;
+    }
+
+
     // o usa este hook dentro del componente si aún no está
     try {
       setLoading(true); // ⏳ Inicia loading
@@ -266,7 +400,7 @@ export default function FormAcreditacionCompetencias() {
 
 
 
-      console.log(payload.data)
+      console.log(payload.data);
 
 
       // Crear entrada en Strapi POST FUNCTION
@@ -331,27 +465,27 @@ export default function FormAcreditacionCompetencias() {
         />
       ),
     },
-    // {
-    //   title: "Hábitos",
-    //   component: (
-    //     <HabitosAcreditacionCompetencias
-    //       data={habitosData}
-    //       updateData={(value) => updateData(value, setHabitosData)}
-    //     />
-    //   ),
-    // },
-    // {
-    //   title: "Habilitación",
-    //   component: (
-    //     <ComponenteRequerimientos
-    //       key="habilitacion"
-    //       title="Habilitación"
-    //       data={habilitacionData}
-    //       updateData={(value) => updateData(value, setHabilitacionData)}
-    //       fetchRequerimientos={getRequerimientosHabilitacion}
-    //     />
-    //   ),
-    // },
+    {
+      title: "Hábitos",
+      component: (
+        <HabitosAcreditacionCompetencias
+          data={habitosData}
+          updateData={(value) => updateData(value, setHabitosData)}
+        />
+      ),
+    },
+    {
+      title: "Habilitación",
+      component: (
+        <ComponenteRequerimientos
+          key="habilitacion"
+          title="Habilitación"
+          data={habilitacionData}
+          updateData={(value) => updateData(value, setHabilitacionData)}
+          fetchRequerimientos={getRequerimientosHabilitacion}
+        />
+      ),
+    },
     {
       title: "Procedimiento",
       component: (
@@ -364,19 +498,19 @@ export default function FormAcreditacionCompetencias() {
         />
       ),
     },
-    // {
-    //   title: "Gestión",
-    //   component: (
-    //     <ComponenteRequerimientos
-    //       key="gestion"
-    //       title="Gestión de control"
-    //       data={gestionData}
-    //       updateData={(value) => updateData(value, setGestionData)}
-    //       fetchRequerimientos={getRequerimientosGestionDeControl}
+    {
+      title: "Gestión",
+      component: (
+        <ComponenteRequerimientos
+          key="gestion"
+          title="Gestión de control"
+          data={gestionData}
+          updateData={(value) => updateData(value, setGestionData)}
+          fetchRequerimientos={getRequerimientosGestionDeControl}
 
-    //     />
-    //   ),
-    // },
+        />
+      ),
+    },
 
   ];
 

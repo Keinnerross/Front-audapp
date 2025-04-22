@@ -13,6 +13,6 @@ interface Auditor {
 
 export const getAuditores = async () => {
     const response = await getQuery<{ data: Auditor[] }>('auditores?populate=*');
-    console.log(response.data.data)
+    // console.log(response.data.data)
     return response.data.data; // ✅ ya es el array
   };
