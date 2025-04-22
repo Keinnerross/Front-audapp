@@ -142,7 +142,8 @@ export default function FormAcreditacionCompetencias() {
         }
 
         return {
-          operador: operadorIds[i], // 👈 
+          operador: operadorIds[i], // 👈
+          rut_operador: item.rut_operador,
           fecha_evaluacion: item.fecha_evaluacion,
           fecha_evaluacion_teorica: item.evaluacion_teorica,
           fecha_evaluacion_practica: item.evaluacion_practica,
@@ -160,6 +161,7 @@ export default function FormAcreditacionCompetencias() {
 
     return habitosSingle.map((item, i) => ({
       operador: operadores[i],
+      rut_operador: item.rut_operador,
       fecha_acreditacion: item.fecha_acreditacion,
       fecha_vigencia_licencia_interna: item.fecha_vigencia_licencia_interna,
       resultado: item.resultado,
@@ -264,7 +266,7 @@ export default function FormAcreditacionCompetencias() {
 
 
 
-
+      console.log(payload.data)
 
 
       // Crear entrada en Strapi POST FUNCTION
@@ -285,7 +287,7 @@ export default function FormAcreditacionCompetencias() {
 
         alert("❌ Error al guardar informe. Ver consola.");
         return;
-      } 
+      }
 
       const idAcreditacion = result.data.id;
 
@@ -310,7 +312,6 @@ export default function FormAcreditacionCompetencias() {
     }
   };
 
-
   const steps = [
     {
       title: "Base",
@@ -330,29 +331,27 @@ export default function FormAcreditacionCompetencias() {
         />
       ),
     },
-    {
-      title: "Hábitos",
-      component: (
-        <HabitosAcreditacionCompetencias
-          data={habitosData}
-          updateData={(value) => updateData(value, setHabitosData)}
-        />
-      ),
-    },
-
-
-    {
-      title: "Habilitación",
-      component: (
-        <ComponenteRequerimientos
-          key="habilitacion"
-          title="Habilitación"
-          data={habilitacionData}
-          updateData={(value) => updateData(value, setHabilitacionData)}
-          fetchRequerimientos={getRequerimientosHabilitacion}
-        />
-      ),
-    },
+    // {
+    //   title: "Hábitos",
+    //   component: (
+    //     <HabitosAcreditacionCompetencias
+    //       data={habitosData}
+    //       updateData={(value) => updateData(value, setHabitosData)}
+    //     />
+    //   ),
+    // },
+    // {
+    //   title: "Habilitación",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key="habilitacion"
+    //       title="Habilitación"
+    //       data={habilitacionData}
+    //       updateData={(value) => updateData(value, setHabilitacionData)}
+    //       fetchRequerimientos={getRequerimientosHabilitacion}
+    //     />
+    //   ),
+    // },
     {
       title: "Procedimiento",
       component: (
@@ -365,19 +364,19 @@ export default function FormAcreditacionCompetencias() {
         />
       ),
     },
-    {
-      title: "Gestión",
-      component: (
-        <ComponenteRequerimientos
-          key="gestion"
-          title="Gestión de control"
-          data={gestionData}
-          updateData={(value) => updateData(value, setGestionData)}
-          fetchRequerimientos={getRequerimientosGestionDeControl}
+    // {
+    //   title: "Gestión",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key="gestion"
+    //       title="Gestión de control"
+    //       data={gestionData}
+    //       updateData={(value) => updateData(value, setGestionData)}
+    //       fetchRequerimientos={getRequerimientosGestionDeControl}
 
-        />
-      ),
-    },
+    //     />
+    //   ),
+    // },
 
   ];
 

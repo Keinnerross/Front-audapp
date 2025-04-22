@@ -11,6 +11,7 @@ import Input from "@/components/form/input/InputField";
 import { CalenderIcon } from "@/icons";
 import MultiSelect from "@/components/form/MultiSelect";
 import LoadingOverlay from "@/components/common/loaderFullPage";
+import { formatDate, formatDateLargo } from "@/utils/formatDate";
 
 // Tipo local para los datos de este paso
 export interface BaseInformeData {
@@ -68,9 +69,6 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
   return (
     <div id="form-acreditacion" className="p-6 space-y-10">
 
-
-
-
       <Section title="Base del Informe">
         {/* Nombre del informe */}
         <DefaultInputs
@@ -83,9 +81,6 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
         />
 
 
-
-
-
         {/* Fecha */}
         <div className="relative">
           <Label htmlFor="fecha">Fecha</Label>
@@ -96,7 +91,7 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
               name="fecha"
               defaultValue={data.fecha || ""}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                updateData({ fecha: e.target.value })
+                updateData({ fecha: formatDate(e.target.value) })
               }
             />
             <span className="absolute text-gray-500 -translate-y-1/2 pointer-events-none right-3 top-1/2 dark:text-gray-400">

@@ -1,21 +1,19 @@
 "use client";
 
 import React from "react";
-import { Section } from "@/components/ui/section/section";
 import Label from "@/components/form/Label";
-import TextAreaInput from "@/components/form/form-elements/TextAreaInput";
-import DropzoneComponent from "@/components/form/form-elements/DropZone";
 import Input from "@/components/form/input/InputField";
 import { CalenderIcon } from "@/icons";
 import DefaultInputs from "@/components/form/form-elements/DefaultInputs";
 import TextAreaInputAI from "@/components/form/form-elements/TextAreaInputAI";
 import { mejorarComentarioIA } from "@/lib/IA/gemini";
+import { formatDate } from "@/utils/formatDate";
 
 // 💡 Tipo para este paso del formulario
 export interface HabitosData {
     nombre_operador: string;
     rut_operador: string;
-    fecha_acreditacion: Date | null;
+    fecha_acreditacion: string | null;
     fecha_vigencia_licencia_interna: Date | null;
     resultado: string;
     habitos_operacionales_realizados: string;
@@ -28,11 +26,7 @@ interface Props {
     updateData: (value: Partial<HabitosData>) => void;
 }
 
-const formatDate = (date: Date | string | null | undefined) => {
-    if (!date) return "";
-    const d = new Date(date);
-    return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
-};
+
 
 export default function HabitosOperacionalesComponent({ data, updateData }: Props) {
     return (
@@ -83,7 +77,7 @@ export default function HabitosOperacionalesComponent({ data, updateData }: Prop
                             id="fecha_vigencia_licencia_interna"
                             name="fecha_vigencia_licencia_interna"
                             value={formatDate(data.fecha_vigencia_licencia_interna)}
-                            onChange={(e) => updateData({ fecha_vigencia_licencia_interna: new Date(e.target.value) })}
+                            onChange={(e) => updateData({ fecha_vigencia_licencia_interna: formatDate(e.target.value) })}
                         />
                         <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 dark:text-gray-400">
                             <CalenderIcon />

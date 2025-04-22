@@ -8,14 +8,15 @@ import DropzoneComponent from "@/components/form/form-elements/DropZone";
 import Input from "@/components/form/input/InputField";
 import { CalenderIcon } from "@/icons";
 import DefaultInputs from "@/components/form/form-elements/DefaultInputs";
+import { formatDate, formatDateLargo } from "@/utils/formatDate"; // Asegúrate de tener esta función en utils
 
 // 💡 Tipo para este paso del formulario
 export interface AcreditacionData {
   nombre_operador: string;
   rut_operador: string;
-  fecha_evaluacion: Date | null;
-  evaluacion_teorica: Date | null;
-  evaluacion_practica: Date | null;
+  fecha_evaluacion: string | null;
+  evaluacion_teorica: string | null;
+  evaluacion_practica: string | null;
   evaluador: string;
   rut_evaluador: string;
   observaciones: string;
@@ -28,12 +29,6 @@ interface Props {
   updateData: (value: Partial<AcreditacionData>) => void;
 }
 
-// 🧠 Utilidad para formatear fecha sin errores
-const formatDate = (date: Date | string | null | undefined) => {
-  if (!date) return "";
-  const d = new Date(date);
-  return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
-};
 
 export default function AcreditacionCompetenciasComponent({ data, updateData }: Props) {
   return (
@@ -62,7 +57,7 @@ export default function AcreditacionCompetenciasComponent({ data, updateData }: 
               name="fecha_evaluacion"
               defaultValue={formatDate(data.fecha_evaluacion)}
               onChange={(e) =>
-                updateData({ fecha_evaluacion: new Date(e.target.value) })
+                updateData({ fecha_evaluacion: formatDate(e.target.value) })
               }
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 dark:text-gray-400">
@@ -81,7 +76,7 @@ export default function AcreditacionCompetenciasComponent({ data, updateData }: 
               name="evaluacion_practica"
               defaultValue={formatDate(data.evaluacion_practica)}
               onChange={(e) =>
-                updateData({ evaluacion_practica: new Date(e.target.value) })
+                updateData({ evaluacion_practica: formatDate(e.target.value) })
               }
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 dark:text-gray-400">
@@ -100,7 +95,7 @@ export default function AcreditacionCompetenciasComponent({ data, updateData }: 
               name="evaluacion_teorica"
               defaultValue={formatDate(data.evaluacion_teorica)}
               onChange={(e) =>
-                updateData({ evaluacion_teorica: new Date(e.target.value) })
+                updateData({ evaluacion_teorica: formatDate(e.target.value) })
               }
             />
             <span className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-500 dark:text-gray-400">
