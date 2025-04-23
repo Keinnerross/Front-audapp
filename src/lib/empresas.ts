@@ -13,6 +13,6 @@ interface Empresas {
 
 export const getEmpresas = async () => {
     const response = await getQuery<{ data: Empresas[] }>('empresas?populate=*');
-    console.log(response.data.data)
+    // console.log(response.data.data)
     return response.data.data; // ✅ ya es el array
   };

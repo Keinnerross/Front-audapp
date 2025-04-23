@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getAuditor, Auditor, getAuditorPicture, AuditorPic } from "@/lib/user"
 import { FaClipboardCheck, FaLock } from "react-icons/fa";
-import LoadingOverlay from "../common/loaderFullPage";
+import LoadingOverlay from "../common/LoaderFullPage";
 
 
 

@@ -5,8 +5,8 @@ import BaseInformeAcreditacionCompetencias, { BaseInformeData } from "./steps/ba
 import AcreditacionCompetenciasAcreditacionCompetencias from "./steps/acreditacion_competencias";
 import Button from "@/components/ui/button/Button";
 import ComponenteRequerimientos, { ComponenteData } from "@/components/audapp/componenteRequerimientos";
-import { getRequerimientosHabitosOperacionales, getRequerimientosGestionDeControl, getRequerimientosHabilitacion, getRequerimientosProcedimientoGeneral, generarPDF } from "@/lib/informe _acreditación";
-import LoadingOverlay from "@/components/common/loaderFullPage";
+import { getRequerimientosGestionDeControl, getRequerimientosHabilitacion, getRequerimientosProcedimientoGeneral, generarPDF } from "@/lib/informe _acreditación";
+import LoadingOverlay from "@/components/common/LoaderFullPage";
 import { useRouter } from "next/navigation";
 import HabitosAcreditacionCompetencias from "./steps/habitos_operacionales";
 import { crearOperador } from "@/lib/operadores";
@@ -22,10 +22,10 @@ const initialBase: BaseInformeData = {
 };
 
 const initialAcreditacion: { acreditacion_single: AcreditacionData[] } = {
-  acreditacion_single: [{}]
+  acreditacion_single: [{} as AcreditacionData]
 };
 const initialHabitos: { habitos_single: HabitosData[] } = {
-  habitos_single: [{}] //este nombre es solo en el front.
+  habitos_single: [{} as HabitosData] //este nombre es solo en el front.
 };
 
 const initialConRequerimientos: ComponenteData = {
