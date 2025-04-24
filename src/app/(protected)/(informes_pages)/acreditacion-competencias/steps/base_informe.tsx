@@ -49,7 +49,20 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
   }, []);
 
 
+  const nombresInforme: string[] = [
+    'Auditoría Sistema Gestión Mantenimiento',
+    'Auditoría al sistema de competencias',
+    'Auditoría Hábitos operacionales',
+    'Auditoría Cumplimiento Estándar Requisitos Complementarios',
+    'Inspección de revisión técnica mecánica (Spot)',
+    'Inspecciones a los centros de mantención Casas Matrices'
+  ];
 
+
+  const nombreInformeOptions = nombresInforme.map((nombre) => ({
+    value: nombre,
+    label: nombre,
+  }));
 
   const empresaOptions = empresas.map((empresa) => ({
     value: String(empresa.documentId),
@@ -69,16 +82,34 @@ export default function BaseInformeAcreditacionCompetencias({ data, updateData }
   return (
     <div id="form-acreditacion" className="p-6 space-y-10">
 
+
+
+
+
+
       <Section title="Base del Informe">
+
+        <div>
+          <Label>Nombre del Informe</Label>
+          <Select
+            options={nombreInformeOptions}
+            placeholder="Selecciona un Nombre de Informe"
+            defaultValue={data.nombre_informe || ""}
+            onChange={(value: string) => updateData({ nombre_informe: value })}
+          />
+        </div>
+
         {/* Nombre del informe */}
-        <DefaultInputs
+        {/* Campo Antiguo */}
+
+        {/* <DefaultInputs
           name="nombre_informe"
           label="Nombre del Informe"
           defaultValue={data.nombre_informe || ""}
           onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
             updateData({ nombre_informe: e.target.value })
           }
-        />
+        /> */}
 
 
         {/* Fecha */}

@@ -12,6 +12,14 @@ import HabitosAcreditacionCompetencias from "./steps/habitos_operacionales";
 import { crearOperador } from "@/lib/operadores";
 import { HabitosData } from "@/components/audapp/acreditacion-competencias/habitosOperacionalesComponente";
 import { AcreditacionData } from "@/components/audapp/acreditacion-competencias/acreditacionCompetenciasComponent";
+import { ValidationResult, validateRequired, VALIDAR } from "@/utils/validationsForm";
+import ResumenDelInforme from "@/components/audapp/resumenDelInforme";
+
+
+
+
+
+
 
 //Informacion con la que se inicializa cada form:
 const initialBase: BaseInformeData = {
@@ -26,6 +34,10 @@ const initialAcreditacion: { acreditacion_single: AcreditacionData[] } = {
 };
 const initialHabitos: { habitos_single: HabitosData[] } = {
   habitos_single: [{} as HabitosData] //este nombre es solo en el front.
+};
+
+const initResumenFinal: { resumen_final: string } = {
+  resumen_final: ""
 };
 
 const initialConRequerimientos: ComponenteData = {
@@ -44,6 +56,7 @@ export default function FormAcreditacionCompetencias() {
   const [habitosData, setHabitosData] = useState(initialHabitos);
   const [gestionData, setGestionData] = useState(initialConRequerimientos);
   const [habilitacionData, setHabilitacionData] = useState(initialConRequerimientos);
+  const [resumenFinal, setResumenFinal] = useState(initResumenFinal);
   const [loading, setLoading] = useState(false);
   const [pdfUrl, setPdfUrl] = useState<string | null>(null);
 
@@ -57,79 +70,84 @@ export default function FormAcreditacionCompetencias() {
   }
 
   // Luego define las funciones de validación para cada paso
+
   const validateSteps = {
     base: (data: BaseInformeData): ValidationResult => {
-      if (!data.nombre_informe.trim()) {
-        return { isValid: false, errorMessage: "El nombre del informe es requerido" };
-      }
-      if (!data.fecha) {
-        return { isValid: false, errorMessage: "La fecha es requerida" };
-      }
-      if (data.auditor.length === 0) {
-        return { isValid: false, errorMessage: "Debe seleccionar al menos un auditor" };
-      }
-      if (!data.empresa) {
-        return { isValid: false, errorMessage: "La empresa es requerida" };
-      }
-      return { isValid: true };
+      if (!VALIDAR) return { isValid: true };
+
+      return (
+        validateRequired(data.nombre_informe, "El nombre del informe es requerido") ||
+        validateRequired(data.fecha, "La fecha es requerida") ||
+        validateRequired(data.auditor, "Debe seleccionar al menos un auditor") ||
+        validateRequired(data.empresa, "La empresa es requerida") ||
+        { isValid: true }
+      );
     },
+
     acreditacion: (data: { acreditacion_single: AcreditacionData[] }): ValidationResult => {
+      if (!VALIDAR) return { isValid: true };
+
       for (const item of data.acreditacion_single) {
-        if (!item.rut_operador?.trim()) {
-          return { isValid: false, errorMessage: "El RUT del operador es requerido" };
-        }
-        if (!item.evaluacion_practica) {
-          return { isValid: false, errorMessage: "La fecha de evaluación práctica es requerida" };
-        }
-        if (!item.evaluacion_teorica) {
-          return { isValid: false, errorMessage: "La fecha de evaluación teórica es requerida" };
-        }
-        if (!item.evaluador?.trim()) {
-          return { isValid: false, errorMessage: "El nombre del evaluador es requerido" };
-        }
-        if (!item.rut_evaluador?.trim()) {
-          return { isValid: false, errorMessage: "El RUT del evaluador es requerido" };
-        }
+        return (
+          validateRequired(item.rut_operador, "El RUT del operador es requerido") ||
+          validateRequired(item.evaluacion_teorica, "La fecha de evaluación teórica es requerida") ||
+          validateRequired(item.evaluacion_practica, "La fecha de evaluación práctica es requerida") ||
+          validateRequired(item.evaluador, "El nombre del evaluador es requerido") ||
+          validateRequired(item.rut_evaluador, "El RUT del evaluador es requerido") ||
+          { isValid: true }
+        );
       }
+
       return { isValid: true };
     },
+
     habitos: (data: { habitos_single: HabitosData[] }): ValidationResult => {
+      if (!VALIDAR) return { isValid: true };
+
       for (const item of data.habitos_single) {
-        if (!item.rut_operador?.trim()) {
-          return { isValid: false, errorMessage: "Faltan campos por completar" };
-        }
-        if (!item.fecha_acreditacion) {
-          return { isValid: false, errorMessage: "Faltan campos por completar" };
-        }
+        return (
+          validateRequired(item.rut_operador, "Faltan campos por completar") ||
+          validateRequired(item.fecha_acreditacion, "Faltan campos por completar") ||
+          { isValid: true }
+        );
       }
+
       return { isValid: true };
     },
+
     habilitacion: (data: ComponenteData): ValidationResult => {
-      if (data.requerimientos.length === 0) {
-        return { isValid: false, errorMessage: "Faltan requerimientos por evaluar" };
-      }
-      if (data.calificacion_resumen === "") {
-        return { isValid: false, errorMessage: "La calificación general de la sección es requerida" };
-      }
-      return { isValid: true };
+      if (!VALIDAR) return { isValid: true };
+
+      return (
+        validateRequired(data.requerimientos, "Faltan requerimientos por evaluar") ||
+        validateRequired(data.calificacion_resumen, "La calificación general de la sección es requerida") ||
+        { isValid: true }
+      );
     },
+
     procedimiento: (data: ComponenteData): ValidationResult => {
-      if (data.requerimientos.length === 0) {
-        return { isValid: false, errorMessage: "Faltan requerimientos por evaluar" };
-      }
-      if (data.calificacion_resumen === "") {
-        return { isValid: false, errorMessage: "La calificación general de la sección es requerida" };
-      }
-      return { isValid: true };
+      if (!VALIDAR) return { isValid: true };
+
+      return (
+        validateRequired(data.requerimientos, "Faltan requerimientos por evaluar") ||
+        validateRequired(data.calificacion_resumen, "La calificación general de la sección es requerida") ||
+        { isValid: true }
+      );
     },
+
     gestion: (data: ComponenteData): ValidationResult => {
-      if (data.requerimientos.length === 0) {
-        return { isValid: false, errorMessage: "Faltan requerimientos por evaluar" };
-      }
-      if (data.calificacion_resumen === "") {
-        return { isValid: false, errorMessage: "La calificación general de la sección es requerida" };
-      }
-      return { isValid: true };
+      if (!VALIDAR) return { isValid: true };
+
+      return (
+        validateRequired(data.requerimientos, "Faltan requerimientos por evaluar") ||
+        validateRequired(data.calificacion_resumen, "La calificación general de la sección es requerida") ||
+        { isValid: true }
+      );
+    },
+
+    resumenFinal: (data: { resumen_final: string }): ValidationResult => {
+      if (!VALIDAR) return { isValid: true };
+      return validateRequired(data.resumen_final, "El resumen final es requerido") || { isValid: true };
     }
   };
 
@@ -326,7 +344,8 @@ export default function FormAcreditacionCompetencias() {
       validateSteps.habitos(habitosData),
       validateSteps.habilitacion(habilitacionData),
       validateSteps.procedimiento(procedimientoData),
-      validateSteps.gestion(gestionData)
+      validateSteps.gestion(gestionData),
+      validateSteps.resumenFinal(resumenFinal)
     ];
 
     const invalidStep = validations.findIndex(v => !v.isValid);
@@ -394,7 +413,9 @@ export default function FormAcreditacionCompetencias() {
             dataFormated.habitos.habitos_single.map((item) => ({
               __component: "informe-acreditacion.habitos-operacionales",
               ...item,
-            }))
+            })),
+            
+          resumen_final: resumenFinal.resumen_final || "",
         }
       };
 
@@ -456,66 +477,78 @@ export default function FormAcreditacionCompetencias() {
         />
       ),
     },
-    {
-      title: "Acreditación",
-      component: (
-        <AcreditacionCompetenciasAcreditacionCompetencias
-          data={acreditacionData}
-          updateData={(value) => updateData(value, setAcreditacionData)}
-        />
-      ),
-    },
-    {
-      title: "Hábitos",
-      component: (
-        <HabitosAcreditacionCompetencias
-          data={habitosData}
-          updateData={(value) => updateData(value, setHabitosData)}
-        />
-      ),
-    },
-    {
-      title: "Habilitación",
-      component: (
-        <ComponenteRequerimientos
-          key="habilitacion"
-          title="Habilitación"
-          data={habilitacionData}
-          updateData={(value) => updateData(value, setHabilitacionData)}
-          fetchRequerimientos={getRequerimientosHabilitacion}
-        />
-      ),
-    },
-    {
-      title: "Procedimiento",
-      component: (
-        <ComponenteRequerimientos
-          key='procedimiento'
-          title="Procedimiento General"
-          data={procedimientoData}
-          updateData={(value) => updateData(value, setProcedimientoData)}
-          fetchRequerimientos={getRequerimientosProcedimientoGeneral}
-        />
-      ),
-    },
-    {
-      title: "Gestión",
-      component: (
-        <ComponenteRequerimientos
-          key="gestion"
-          title="Gestión de control"
-          data={gestionData}
-          updateData={(value) => updateData(value, setGestionData)}
-          fetchRequerimientos={getRequerimientosGestionDeControl}
+    // {
+    //   title: "Acreditación",
+    //   component: (
+    //     <AcreditacionCompetenciasAcreditacionCompetencias
+    //       data={acreditacionData}
+    //       updateData={(value) => updateData(value, setAcreditacionData)}
+    //     />
+    //   ),
+    // },
+    // {
+    //   title: "Hábitos",
+    //   component: (
+    //     <HabitosAcreditacionCompetencias
+    //       data={habitosData}
+    //       updateData={(value) => updateData(value, setHabitosData)}
+    //     />
+    //   ),
+    // },
+    // {
+    //   title: "Habilitación",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key="habilitacion"
+    //       title="Habilitación"
+    //       data={habilitacionData}
+    //       updateData={(value) => updateData(value, setHabilitacionData)}
+    //       fetchRequerimientos={getRequerimientosHabilitacion}
+    //     />
+    //   ),
+    // },
+    // {
+    //   title: "Procedimiento",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key='procedimiento'
+    //       title="Procedimiento General"
+    //       data={procedimientoData}
+    //       updateData={(value) => updateData(value, setProcedimientoData)}
+    //       fetchRequerimientos={getRequerimientosProcedimientoGeneral}
+    //     />
+    //   ),
+    // },
+    // {
+    //   title: "Gestión",
+    //   component: (
+    //     <ComponenteRequerimientos
+    //       key="gestion"
+    //       title="Gestión de control"
+    //       data={gestionData}
+    //       updateData={(value) => updateData(value, setGestionData)}
+    //       fetchRequerimientos={getRequerimientosGestionDeControl}
 
+    //     />
+    //   ),
+    // },
+
+    {
+      title: 'Resumen Final',
+
+      component: (
+        <ResumenDelInforme
+          key="resumenFinal"
+          data={resumenFinal}
+          updateData={(value) => updateData(value, setResumenFinal)}
         />
       ),
-    },
+    }
 
   ];
 
   return (
-    <div className=" mx-auto p-4">
+    <div className="pt-4">
       <LoadingOverlay isLoading={loading} />
 
       <div className="grid grid-cols-3 md:flex justify-between gap-4 mb-6">
@@ -530,6 +563,7 @@ export default function FormAcreditacionCompetencias() {
           </div>
         ))}
       </div>
+
       <div className="mb-6">{steps[currentStep].component}</div>
       <div className="flex justify-between mt-4">
         <Button onClick={back} disabled={currentStep === 0}>Atrás</Button>

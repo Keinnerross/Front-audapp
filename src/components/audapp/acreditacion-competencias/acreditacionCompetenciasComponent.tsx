@@ -1,16 +1,14 @@
 "use client";
 
 import React from "react";
-import { Section } from "@/components/ui/section/section";
 import Label from "@/components/form/Label";
-import TextAreaInput from "@/components/form/form-elements/TextAreaInput";
 import DropzoneComponent from "@/components/form/form-elements/DropZone";
 import Input from "@/components/form/input/InputField";
 import { CalenderIcon } from "@/icons";
 import DefaultInputs from "@/components/form/form-elements/DefaultInputs";
-import { formatDate, formatDateLargo } from "@/utils/formatDate"; // Asegúrate de tener esta función en utils
-import CrearBuscarOperador from "@/components/form/audapp/crearBuscarOperador";
-import { fetchOperadoresPorEmpresaDocumentId } from "@/lib/operadores";
+import { formatDate } from "@/utils/formatDate";
+import { mejorarComentarioIA } from "@/lib/IA/gemini";
+import TextAreaInputAI from "@/components/form/form-elements/TextAreaInputAI";
 
 // 💡 Tipo para este paso del formulario
 export interface AcreditacionData {
@@ -125,12 +123,17 @@ export default function AcreditacionCompetenciasComponent({ data, updateData, em
         />
 
         {/* Observaciones */}
-        <TextAreaInput
+        <TextAreaInputAI
           name="observaciones"
           label="Observaciones"
-          defaultValue={data.observaciones}
+          value={data.observaciones || ''}
+          onImprove={async (text) => {
+            const textoMejorado: string = await mejorarComentarioIA(text)
+            return textoMejorado;
+          }}
           onChange={(e) => updateData({ observaciones: e.target.value })}
         />
+
 
         {/* Documentos */}
         <DropzoneComponent

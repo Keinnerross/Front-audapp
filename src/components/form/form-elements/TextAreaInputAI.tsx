@@ -69,7 +69,7 @@ export default function TextAreaInputAI({
             onClick={handleImprove}
             className="text-xs text-brand-500 hover:underline disabled:opacity-50"
           >
-            {isImproving ? "Mejorando..." : "💡 Mejorar con IA"}
+            {isImproving ? "Mejorando..." : "💡 Texto IA"}
           </button>
         )}
       </div>

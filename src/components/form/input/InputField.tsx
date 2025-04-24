@@ -15,14 +15,24 @@ const Input: React.FC<InputProps> = ({
   error = false,
   hint,
   type,
+  onChange,
   ...props
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const handleWrapperClick = () => {
     if (type === "date" && inputRef.current) {
-      inputRef.current.showPicker?.(); // en browsers modernos
-      inputRef.current.focus(); // fallback
+      const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+      const safariVersionMatch = navigator.userAgent.match(/Version\/(\d+)/);
+      const safariVersion = safariVersionMatch ? parseInt(safariVersionMatch[1]) : null;
+
+      const isOldSafari = isSafari && safariVersion && safariVersion < 15;
+
+      if (!isOldSafari && typeof inputRef.current.showPicker === "function") {
+        inputRef.current.showPicker(); // ✅ solo si es seguro
+      }
+
+      inputRef.current.focus();
     }
   };
 
@@ -43,6 +53,8 @@ const Input: React.FC<InputProps> = ({
       <input
         ref={inputRef}
         type={type}
+        onChange={onChange}
+        onInput={(e: React.ChangeEvent<HTMLInputElement>) => onChange?.(e)} // fallback para Safari
         {...props}
         className={inputClasses}
         disabled={disabled}

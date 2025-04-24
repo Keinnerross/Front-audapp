@@ -99,7 +99,7 @@ const DropzoneComponent: React.FC<DropzoneProps> = ({ onDrop, name, label, defau
                 </button>
               </div>
             ) : (
-              <h4 className="font-semibold text-gray-800 text-theme-xl dark:text-white/90">
+              <h4 className="font-semibold text-gray-800 text-theme-xl dark:text-white/90 text-center">
                 {isDragActive ? "Suelta los archivos aquí" : "Carga imágenes aquí"}
               </h4>
             )}
@@ -109,7 +109,7 @@ const DropzoneComponent: React.FC<DropzoneProps> = ({ onDrop, name, label, defau
             </span>
 
             <span className="font-medium underline text-theme-sm text-brand-500">
-              Cargar archivo
+              Cargar
             </span>
           </div>
         </form>
