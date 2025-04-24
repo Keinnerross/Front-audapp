@@ -4,7 +4,7 @@ export interface ValidationResult {
     errorMessage?: string;
   }
   
-  export const VALIDAR = false; // Cambia esto a false para desactivar validaciones
+  export const VALIDAR = true; // Cambia esto a false para desactivar validaciones
   
   export const validateRequired = (value: any, message: string): ValidationResult | null => {
     const isEmpty =
